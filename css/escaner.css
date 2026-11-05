@@ -1,9 +1,8 @@
 /* =========================================================
-   SIMPLEGYM — estilos específicos del escáner de productos
-   Extiende css/styles.css (cargar DESPUÉS de esa hoja)
+   SIMPLEGYM — estilos del escáner de productos
    ========================================================= */
 
-/* ---------- Visor de la cámara ---------- */
+/* Contenedor de la cámara (html5-qrcode inyecta <video> dentro) */
 .video-wrap {
 	position: relative;
 	width: 100%;
@@ -13,15 +12,22 @@
 	overflow: hidden;
 	margin: 10px 0;
 }
-.video-wrap video {
-	display: block;
-	width: 100%;
-	height: 100%;
+.video-wrap video,
+.video-wrap canvas {
+	display: block !important;
+	width: 100% !important;
+	height: 100% !important;
 	object-fit: cover;
-	background: #000;
+}
+/* html5-qrcode inyecta un div#reader__dashboard_section_csr con botones feos:
+   los ocultamos porque ya tenemos nuestros propios botones */
+#reader__dashboard_section_csr,
+#reader__dashboard_section_swaplink,
+#reader__header_message {
+	display: none !important;
 }
 
-/* ---------- Foto del producto ---------- */
+/* Foto del producto */
 .producto-img {
 	display: block;
 	width: 100%;
@@ -33,7 +39,7 @@
 	margin: 0 auto 12px;
 }
 
-/* ---------- Octógonos negros ---------- */
+/* Octógonos negros */
 .sellos {
 	display: flex;
 	flex-wrap: wrap;
@@ -41,7 +47,6 @@
 	justify-content: center;
 	margin: 14px 0;
 }
-
 .octogono {
 	background: #000;
 	color: #fff;
@@ -58,28 +63,20 @@
 	letter-spacing: 0.3px;
 	text-transform: uppercase;
 	clip-path: polygon(
-		30% 0%,
-		70% 0%,
-		100% 30%,
-		100% 70%,
-		70% 100%,
-		30% 100%,
-		0% 70%,
-		0% 30%
+		30% 0%, 70% 0%, 100% 30%, 100% 70%,
+		70% 100%, 30% 100%, 0% 70%, 0% 30%
 	);
-	-webkit-tap-highlight-color: transparent;
 }
+.octogono--ultra { font-size: 0.68rem; }
 
-/* Sello adicional de ultraprocesado: mismo formato, texto distinto */
-.octogono--ultra {
-	background: #000;
-	color: #fff;
-	font-size: 0.68rem;
+/* Fallback manual */
+.manual {
+	margin-top: 14px;
 }
-
-/* Variante accesible: si el usuario prefiere menos movimiento */
-@media (prefers-reduced-motion: reduce) {
-	.octogono {
-		transition: none;
-	}
+.manual summary {
+	cursor: pointer;
+	color: var(--muted-color);
+	font-size: 0.9rem;
+	padding: 8px 0;
 }
+.manual .finish-form { margin-top: 8px; }

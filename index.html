@@ -7,7 +7,9 @@
 		<link rel="icon" type="image/svg+xml" href="./favicon.svg">
 		<link rel="stylesheet" href="css/styles.css">
 		<link rel="stylesheet" href="css/escaner.css">
-		<script type="module" src="js/escaner.mjs"></script>
+		<!-- html5-qrcode: UMD estable, expone Html5Qrcode globalmente -->
+		<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+		<script type="module" src="js/escaner.js"></script>
 	</head>
 	<body>
 		<header class="topbar">
@@ -18,17 +20,37 @@
 			<section class="dashboard-container">
 				<article class="card">
 					<h2>Escáner</h2>
-					<p class="card-text">
-						Apunta al código de barras (EAN-13 / UPC) del producto. La primera lectura detendrá la cámara y mostrará los datos.
-					</p>
-					<div class="video-wrap">
-						<video id="video" autoplay playsinline muted></video>
-					</div>
+					<p class="card-text">Apunta al código de barras (EAN-13 / UPC) del producto.</p>
+
+					<!-- Contenedor donde html5-qrcode inyecta el <video> -->
+					<div id="reader" class="video-wrap" aria-label="Visor de la cámara"></div>
+
 					<div class="btn-panel">
 						<button type="button" class="btn btn-primary" id="btn-iniciar">Iniciar cámara</button>
 						<button type="button" class="btn btn-secondary" id="btn-detener" hidden>Detener</button>
 					</div>
+
 					<p class="card-text" id="estado-escaneo"></p>
+
+					<details class="manual">
+						<summary>¿La cámara no funciona? Introduce el código a mano</summary>
+						<form id="form-manual" class="finish-form" novalidate>
+							<label for="codigo-manual">
+								Código de barras
+								<input
+									id="codigo-manual"
+									name="codigo"
+									type="text"
+									inputmode="numeric"
+									autocomplete="off"
+									pattern="\d{8,14}"
+									placeholder="Ej. 8412345678905"
+									required
+								>
+							</label>
+							<button type="submit" class="btn btn-primary">Buscar producto</button>
+						</form>
+					</details>
 				</article>
 
 				<article class="card" id="resultado" hidden>
