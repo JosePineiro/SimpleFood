@@ -1,12 +1,17 @@
 /* =========================================================
-   SIMPLEGYM — Escáner de productos con octógonos OPS y NOVA
-   Usa html5-qrcode (cargado en el HTML como UMD global).
+   SIMPLEFOOD — Escáner de productos con octógonos OPS y NOVA
    ========================================================= */
 
-/* ---------- Helper local (sin dependencias externas) ---------- */
 function setText(id, texto) {
 	const el = document.getElementById(id);
 	if (el) el.textContent = texto;
+}
+
+function formatearUnDecimal(numero) {
+	return new Intl.NumberFormat('es-ES', {
+		minimumFractionDigits: 1,
+		maximumFractionDigits: 1
+	}).format(numero);
 }
 
 /* =========================================================
@@ -164,12 +169,44 @@ function getGrupoNova(producto) {
 }
 
 function esLiquido(producto) {
-	const u = String(producto.product_quantity_unit || "").toLowerCase();
-	if (u) return u === "ml" || u === "cl" || u === "l";
-	const b = String(producto.nutrition_data_per || "").toLowerCase();
-	if (b) return b.includes("ml");
+	// 1. Comprobación por categorías
 	const cats = (producto.categories_tags || []).join(" ").toLowerCase();
-	return /\b(water|waters|agua|bebida|beverage|drink|juice|jugo|zumo|soda|refresco|milk|leche|smoothie|batido)\b/.test(cats);
+	const porCategorias = /\b(water|waters|agua|bebida|beverage|drink|juice|jugo|zumo|soda|refresco|milk|leche|smoothie|batido|beer|cerveza|wine|vino|cider|sidra)\b/.test(cats);
+	if (porCategorias) return true;
+
+	// 2. Comprobación por unidad de medida
+	const u = String(producto.product_quantity_unit || "").toLowerCase();
+	if (u === "ml" || u === "cl" || u === "l") return true;
+
+	// 3. Comprobación por base nutricional (ej: "per 100 ml")
+	const b = String(producto.nutrition_data_per || "").toLowerCase();
+	if (b.includes("ml")) return true;
+
+	// Si ninguna de las condiciones se cumple, no es líquido
+	return false;
+}
+
+function contieneAlcohol(producto) {
+	// 1. Comprobación por nutrientes
+	const alcohol = producto.nutriments?.["alcohol_100g"];
+	// Si el campo existe y su valor es mayor que 0, el producto contiene alcohol.
+	if (alcohol != null) {
+		return Number(alcohol) > 0.5; // La ley considera "sin alcohol" si es e igual o menor a 0.5%
+	}
+
+	// 2. Comprobación por categorías
+	const cats = (producto.categories_tags || []).join(" ").toLowerCase();
+
+	// Primero descartamos explícitamente si es una categoría "sin alcohol" (non-alcoholic)
+	if (cats.includes("non-alcoholic") || cats.includes("sin-alcohol") || cats.includes("0-0")) {
+		return false;
+	}
+
+	// Si no es un "sin", buscamos raíces clave de bebidas alcohólicas
+	// Quitamos \b y usamos expresiones más flexibles para evitar problemas con los guiones de Open Food Facts
+	const tienePalabrasAlcohol = /(alcoholic|beer|cerveza|wine|vino|cider|sidra|spirits|licor)/.test(cats);
+
+	return tienePalabrasAlcohol;
 }
 
 function estimarAzucaresLibres(producto, n) {
@@ -253,34 +290,60 @@ function mostrarError(mensaje) {
 function renderizarNutrientes(n) {
 	const dl = document.getElementById("nutrientes");
 	dl.innerHTML = "";
-	const filas = [
-		["Energía", n["energy-kcal_100g"] != null ? `${n["energy-kcal_100g"]} kcal` : "—"],
-		["Grasas totales", n.fat_100g != null ? `${n.fat_100g} g` : "—"],
-		["Grasas saturadas", n["saturated-fat_100g"] != null ? `${n["saturated-fat_100g"]} g` : "—"],
-		["Azúcares", n.sugars_100g != null ? `${n.sugars_100g} g` : "—"],
-		["Sal", n.salt_100g != null ? `${n.salt_100g} g` : "—"],
+
+	// Configuración de los nutrientes: [Clave_API, Etiqueta, Unidad_Por_Defecto]
+	const configNutrientes = [
+		["energy-kcal", "Energía", "kcal"],
+		["fat", "Grasas totales", "g"],
+		["saturated-fat", "Grasas saturadas", "g"],
+		["carbohydrates", "Hidratos de carbono", "g"],
+		["sugars", "Azúcares", "g"],
+		["proteins", "Proteínas", "g"],
+		["fiber", "Fibra", "g"],
+		["salt", "Sal", "g"]
 	];
-	for (const [etiqueta, valor] of filas) {
+
+	for (const [clave, etiqueta, unidadDefecto] of configNutrientes) {
+		const valor100g = n[`${clave}_100g`];
+
+		// Determinar la unidad (usa la de la API o la por defecto)
+		const unidad = n[`${clave}_unit`] != null ? n[`${clave}_unit`] : unidadDefecto;
+
+		// Formatear el texto final
+		const textoValor = valor100g != null
+			? `${formatearUnDecimal(valor100g)} ${unidad}`
+			: "—";
+
+		// Crear e inyectar el DOM
 		const cont = document.createElement("div");
 		const dt = document.createElement("dt");
 		dt.textContent = etiqueta;
 		const dd = document.createElement("dd");
-		dd.textContent = valor;
+		dd.textContent = textoValor;
+
 		cont.append(dt, dd);
 		dl.appendChild(cont);
 	}
 }
+
 
 function renderizarSellos(producto) {
 	const cont = document.getElementById("sellos");
 	cont.innerHTML = "";
 	const sellos = calcularSellos(producto);
 	const ultra = esUltraprocesado(producto);
+	const alcohol = contieneAlcohol(producto);
 
 	for (const texto of sellos) {
 		const div = document.createElement("div");
 		div.className = "octogono";
 		div.textContent = texto;
+		cont.appendChild(div);
+	}
+	if (alcohol) {
+		const div = document.createElement("div");
+		div.className = "octogono octogono--alcohol";
+		div.textContent = "Alcohol";
 		cont.appendChild(div);
 	}
 	if (ultra) {
@@ -289,7 +352,7 @@ function renderizarSellos(producto) {
 		div.textContent = "Ultraprocesado";
 		cont.appendChild(div);
 	}
-	if (sellos.length === 0 && !ultra) {
+	if (sellos.length === 0 && !alcohol && !ultra) {
 		const p = document.createElement("p");
 		p.className = "card-text";
 		const g = getGrupoNova(producto);
