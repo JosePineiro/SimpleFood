@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Escáner de productos">
+	<title>Escáner de productos — SIMPLEGYM</title>
+
+	<!-- Fondo: color primario de la app -->
+	<rect width="64" height="64" rx="0" fill="#08f"/>
+
+	<!-- Octógono negro (sello de advertencia, como en la pantalla del escáner) -->
+	<polygon
+		points="22,8 42,8 56,22 56,42 42,56 22,56 8,42 8,22"
+		fill="#000"/>
+
+	<!-- Código de barras en blanco dentro del octógono -->
+	<g fill="#fff">
+		<rect x="18" y="22" width="3" height="20" rx="1"/>
+		<rect x="23" y="22" width="2" height="20" rx="1"/>
+		<rect x="27" y="22" width="4" height="20" rx="1"/>
+		<rect x="33" y="22" width="2" height="20" rx="1"/>
+		<rect x="37" y="22" width="3" height="20" rx="1"/>
+		<rect x="42" y="22" width="2" height="20" rx="1"/>
+	</g>
+</svg>

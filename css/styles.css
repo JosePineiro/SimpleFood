@@ -1,0 +1,786 @@
+/* =========================================================
+   SIMPLEGYM — hoja de estilos única
+   ========================================================= */
+
+:root {
+	/* Paleta */
+	--bg-color: #eee;
+	--text-color: #333;
+	--card-bg: #fff;
+	--primary-color: #08f;
+	--primary-hover: #05b;
+	--muted-color: #666;
+
+	--topbar-bg: #223;
+	--topbar-text: #fff;
+	--topbar-muted: #abc;
+
+	/* Espaciado y medidas */
+	--radius: 12px;
+	--gap: 20px;
+	--max-width: 900px;
+	--pad-x: clamp(12px, 4vw, 24px);
+	--card-pad: clamp(8px, 4vw, 24px);
+
+	/* Foco */
+	--focus-ring: 3px solid rgba(0, 123, 255, 0.4);
+	--focus-offset: 2px;
+
+	/* Rejillas */
+	--grid-2: repeat(2, minmax(0, 1fr));
+	--grid-3: repeat(3, minmax(0, 1fr));
+
+	--font-sans: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+
+	/* Calendario */
+	--day-text: #123;
+	--day-best-text: #430;
+}
+
+/* ---------- Reset básico ---------- */
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+html {
+	-webkit-text-size-adjust: 100%;
+}
+
+body {
+	font-family: var(--font-sans);
+	background-color: var(--bg-color);
+	color: var(--text-color);
+	margin: 0;
+	min-height: 100dvh;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+button,
+input {
+	font: inherit;
+}
+
+/* =========================================================
+   Utilidades
+   ========================================================= */
+[hidden] {
+	display: none !important;
+}
+
+/* Foco accesible uniforme */
+.topbar-link:focus-visible,
+.btn:focus-visible,
+.grid .card:focus-visible,
+.finish-form input:focus-visible,
+/* unused-css-ignore */
+.cal-day:focus-visible {
+	outline: var(--focus-ring);
+	outline-offset: var(--focus-offset);
+}
+
+/* =========================================================
+   Barra superior
+   ========================================================= */
+.topbar {
+	position: sticky;
+	top: 0;
+	z-index: 5;
+	width: 100%;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 12px;
+	padding: 12px max(16px, env(safe-area-inset-right)) 12px max(16px, env(safe-area-inset-left));
+	background: var(--topbar-bg);
+	color: var(--topbar-text);
+	box-shadow: 0 2px 8px #000;
+}
+
+.topbar h1 {
+	flex: 1;
+	min-width: 0;
+	font-size: 1.05rem;
+	margin: 0;
+	letter-spacing: 0.5px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.subtitulo {
+	margin: 0;
+	flex-shrink: 0;
+	white-space: nowrap;
+	font-size: clamp(0.7rem, 2.8vw, 0.85rem);
+	color: var(--topbar-muted);
+}
+
+.topbar-link {
+	flex-shrink: 0;
+	color: var(--topbar-text);
+	background-color: var(--primary-color);
+	text-decoration: none;
+	font-size: clamp(0.75rem, 3vw, 0.85rem);
+	font-weight: 600;
+	padding: 6px 12px;
+	border-radius: 8px;
+	transition: background-color 0.2s ease;
+	-webkit-tap-highlight-color: transparent;
+}
+
+/* =========================================================
+   Contenedor principal
+   ========================================================= */
+.container {
+	flex: 1;
+	width: 100%;
+	max-width: var(--max-width);
+	display: flex;
+	flex-direction: column;
+	gap: clamp(16px, 4vw, 30px);
+	padding: var(--pad-x);
+	padding-inline: max(var(--pad-x), env(safe-area-inset-left)) max(var(--pad-x), env(safe-area-inset-right));
+	padding-bottom: max(var(--pad-x), env(safe-area-inset-bottom));
+}
+
+.dashboard-container {
+	display: flex;
+	flex-direction: column;
+	gap: var(--gap);
+}
+
+.grid {
+	display: grid;
+	grid-template-columns: var(--grid-2);
+	gap: clamp(12px, 3vw, var(--gap));
+}
+
+/* =========================================================
+   Tarjetas
+   ========================================================= */
+.card {
+	background-color: var(--card-bg);
+	border-radius: var(--radius);
+	box-shadow: 0 4px 6px #ccc;
+	padding: var(--card-pad);
+	min-width: 0;
+}
+
+/* Título de tarjeta (compartido por h2 hijos y títulos ad-hoc) */
+.card > h2,
+.card-title {
+	margin: 0 0 14px;
+	font-size: clamp(1.1rem, 4vw, 1.3rem);
+	color: #222;
+}
+
+.card-text {
+	margin: 0;
+	color: var(--muted-color);
+	font-size: 0.9rem;
+	line-height: 1.45;
+	overflow-wrap: break-word;
+}
+
+/* Panel principal (index.html) */
+.dashboard-container .card {
+	text-align: center;
+	display: flex;
+	flex-direction: column;
+	gap: 15px;
+}
+.dashboard-container .card > h2 {
+	margin: 0;
+}
+
+/* Rejilla de tarjetas-enlace */
+.grid .card {
+	padding: 0;
+	overflow: hidden;
+	text-decoration: none;
+	color: inherit;
+	transition:
+		transform 0.2s ease,
+		box-shadow 0.2s ease,
+		opacity 0.2s ease;
+	display: flex;
+	flex-direction: column;
+	-webkit-tap-highlight-color: transparent;
+}
+
+.grid .card img {
+	width: 100%;
+	height: clamp(110px, 28vw, 160px);
+	object-fit: contain;
+	border-bottom: 1px solid #eee;
+	background-color: #fff;
+	display: block;
+}
+
+/* unused-css-ignore */
+.card-name {
+	padding: 12px;
+	text-align: center;
+	font-weight: 600;
+	font-size: clamp(0.85rem, 3.5vw, 0.95rem);
+	line-height: 1.3;
+	overflow-wrap: break-word;
+}
+
+/* unused-css-ignore */
+.completado {
+	opacity: 0.4;
+	filter: grayscale(80%);
+}
+
+/* Tarjeta hero (ejercicio.html) */
+.hero {
+	display: block;
+}
+.hero img,
+.exerciseImage {
+	display: block;
+	width: 100%;
+	height: auto;
+	aspect-ratio: 4 / 3;
+	object-fit: contain;
+	border-radius: 10px;
+	margin: 0;
+}
+.hero p {
+	line-height: 1.5;
+	margin: 0 0 12px;
+	color: var(--muted-color);
+}
+
+/* =========================================================
+   Interruptor (switch) reutilizable
+   ========================================================= */
+.switch {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	min-height: 44px;
+	padding: 4px 0;
+	cursor: pointer;
+	font-weight: 600;
+	text-align: left;
+	-webkit-tap-highlight-color: transparent;
+	user-select: none;
+}
+
+.switch input {
+	position: absolute;
+	opacity: 0;
+	width: 1px;
+	height: 1px;
+	pointer-events: none;
+}
+
+.switch-slider {
+	position: relative;
+	flex-shrink: 0;
+	width: 70px;
+	height: 32px;
+	background-color: #ccc;
+	border-radius: 999px;
+	transition: background-color 0.2s ease;
+}
+
+.switch-slider::before {
+	content: "";
+	position: absolute;
+	top: 3px;
+	left: 3px;
+	width: 26px;
+	height: 26px;
+	background-color: #fff;
+	border-radius: 50%;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+	transition: transform 0.2s ease;
+}
+
+.switch input:checked ~ .switch-slider {
+	background-color: var(--primary-color);
+}
+
+.switch input:checked ~ .switch-slider::before {
+	transform: translateX(38px);
+}
+
+.switch input:focus-visible ~ .switch-slider {
+	outline: var(--focus-ring);
+	outline-offset: var(--focus-offset);
+}
+
+.switch input:disabled ~ .switch-slider {
+	opacity: 0.5;
+}
+
+.switch:has(input:disabled) {
+	cursor: not-allowed;
+}
+
+.switch-text {
+	flex: 1;
+	color: var(--text-color);
+}
+
+/* =========================================================
+   Métricas (.stats)
+   ========================================================= */
+.stats {
+	display: grid;
+	grid-template-columns: var(--grid-2);
+	gap: 8px;
+}
+.stats > div {
+	background: #ddd;
+	border-radius: 10px;
+	padding: 10px;
+	min-width: 0;
+}
+dl.stats {
+	display: grid;
+	grid-template-columns: var(--grid-2);
+	gap: 8px;
+	margin-bottom: 0;
+}
+.stats dt {
+	display: block;
+	font-size: 0.8rem;
+	color: var(--muted-color);
+}
+.stats dd {
+	display: block;
+	margin: 3px 0 0 0;
+	color: #111;
+	overflow-wrap: break-word;
+	font-weight: bold;
+}
+
+/* =========================================================
+   Formularios de fin de ejercicio
+   ========================================================= */
+.finish-form h2 {
+	margin-top: 0;
+	margin-bottom: 0;
+}
+.finish-form label {
+	display: block;
+	font-weight: 700;
+	margin: 10px 0;
+}
+.finish-form input {
+	width: 100%;
+	margin-top: 5px;
+	padding: 12px;
+	border: 1px solid #dee;
+	border-radius: 8px;
+	font-family: inherit;
+	font-size: 1rem;
+	background: #fff;
+	color: var(--text-color);
+}
+.finish-form input:focus-visible {
+	border-color: var(--primary-color);
+}
+.finish-form .btn {
+	width: 100%;
+	margin-top: 8px;
+}
+
+/* =========================================================
+   Botones (un único .btn + variables de tema)
+   ========================================================= */
+.btn {
+	--btn-bg: transparent;
+	--btn-fg: inherit;
+	--btn-hover: transparent;
+
+	border: 0;
+	border-radius: 9px;
+	padding: 12px 20px;
+	font-family: inherit;
+	font-size: 1rem;
+	font-weight: 700;
+	line-height: 1.2;
+	cursor: pointer;
+	text-decoration: none;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+	min-height: 44px;
+	background-color: var(--btn-bg);
+	color: var(--btn-fg);
+	transition:
+		background-color 0.2s ease,
+		transform 0.1s ease,
+		opacity 0.2s ease;
+	-webkit-tap-highlight-color: transparent;
+}
+
+.btn-primary {
+	--btn-bg: var(--primary-color);
+	--btn-fg: #fff;
+	--btn-hover: var(--primary-hover);
+}
+.btn-secondary {
+	--btn-bg: #eee;
+	--btn-fg: #222;
+	--btn-hover: #ddd;
+}
+
+.btn-large {
+	width: 100%;
+	font-size: 1.05rem;
+	padding: 14px;
+}
+
+/* unused-css-ignore */
+.btn-disabled {
+	opacity: 0.5;
+	pointer-events: none;
+	cursor: default;
+}
+
+/* Botonera e importación de ficheros */
+.btn-panel {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	justify-content: center;
+}
+.btn-panel .btn {
+	flex: 1 1 45%;
+	min-width: 140px;
+}
+
+input[type="file"] {
+	display: none;
+}
+.file-label {
+	cursor: pointer;
+}
+
+/* =========================================================
+   Tablas
+   ========================================================= */
+.table-wrap {
+	overflow: auto;
+	margin-top: 12px;
+}
+table {
+	border-collapse: collapse;
+	width: 100%;
+	font-size: 0.9rem;
+}
+th,
+td {
+	text-align: left;
+	padding: 9px 3px;
+	border-bottom: 1px solid #eff;
+	white-space: nowrap;
+}
+
+/* unused-css-ignore */
+.numero {
+	text-align: right;
+}
+
+/* =========================================================
+   Gráficos
+   ========================================================= */
+.chart-wrap {
+	position: relative;
+	width: 100%;
+	height: clamp(240px, 55vw, 420px);
+}
+.chart-wrap canvas {
+	display: block;
+	width: 100%;
+	height: 100%;
+	margin-top: 0;
+}
+
+/* =========================================================
+   Calendario (estadisticas-dias.html)
+   ========================================================= */
+
+/* Estados → mapa de calor en tonos azules (3 dígitos) */
+/* unused-css-ignore */
+.cal-day--none {
+	--cd-bg: #eef;
+	--cd-fg: #223;
+}
+.cal-day--some {
+	--cd-bg: #ace;
+	--cd-fg: #123;
+}
+.cal-day--all {
+	--cd-bg: #37c;
+	--cd-fg: #fff;
+}
+.cal-day--best {
+	--cd-bg: #136;
+	--cd-fg: #fff;
+}
+
+/* Base compartida día / muestra de leyenda */
+/* unused-css-ignore */
+.cal-day,
+.cal-swatch {
+	background: var(--cd-bg, #fff);
+	color: var(--cd-fg, var(--day-text));
+	border: 1px solid #eee;
+}
+
+/* Barra de navegación del mes */
+.cal-toolbar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+	margin-bottom: 14px;
+}
+.cal-title {
+	flex: 1;
+	text-align: center;
+	text-transform: capitalize;
+	margin: 0;
+}
+.cal-nav {
+	padding: 8px 14px;
+	min-width: 44px;
+	min-height: 44px;
+	font-size: 1.2rem;
+	line-height: 1;
+}
+
+/* Cabecera de días y rejilla */
+.cal-weekdays {
+	display: grid;
+	grid-template-columns: repeat(7, 1fr);
+	gap: 4px;
+	margin-bottom: 6px;
+	font-size: 0.75rem;
+	font-weight: 700;
+	color: var(--muted-color);
+	text-align: center;
+}
+.cal-grid {
+	display: grid;
+	grid-template-columns: repeat(7, 1fr);
+	gap: 4px;
+}
+
+/* unused-css-ignore */
+.cal-day {
+	position: relative;
+	aspect-ratio: 1 / 1;
+	border-radius: 8px;
+	font: inherit;
+	font-size: clamp(0.75rem, 3vw, 0.9rem);
+	font-weight: 600;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0;
+	cursor: pointer;
+	-webkit-tap-highlight-color: transparent;
+	transition:
+		transform 0.15s ease,
+		box-shadow 0.15s ease;
+}
+/* unused-css-ignore */
+.cal-day:focus-visible {
+	z-index: 2;
+}
+/* unused-css-ignore */
+.cal-day--empty {
+	background: transparent;
+	border-color: transparent;
+	pointer-events: none;
+	cursor: default;
+}
+
+/* unused-css-ignore */
+.cal-day--hoy {
+	outline: 2px dashed var(--primary-color);
+	outline-offset: -3px;
+}
+/* unused-css-ignore */
+.cal-day--sel {
+	box-shadow: 0 0 0 3px #7bf;
+	z-index: 1;
+}
+
+/* Leyenda */
+.cal-leyenda {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	font-size: 0.9rem;
+	color: var(--muted-color);
+}
+.cal-leyenda li {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+.cal-swatch {
+	width: 22px;
+	height: 22px;
+	border-radius: 6px;
+	flex-shrink: 0;
+}
+
+/* Detalle del día */
+#detalleContenido .table-wrap {
+	margin-top: 12px;
+}
+#detalleContenido table {
+	font-size: 0.85rem;
+}
+#detalleContenido th,
+#detalleContenido td {
+	white-space: nowrap;
+	padding: 8px;
+}
+
+/* unused-css-ignore */
+.progreso-badge {
+	display: inline-block;
+	background: var(--day-best);
+	color: var(--day-best-text);
+	font-size: 0.75rem;
+	font-weight: 700;
+	padding: 2px 8px;
+	border-radius: 999px;
+	margin-left: 6px;
+	vertical-align: middle;
+}
+/* unused-css-ignore */
+.progreso-up {
+	background-color: #0f5;
+	color: #043;
+}
+/* unused-css-ignore */
+.progreso-down {
+	background-color: #f00;
+	color: #400;
+}
+/* unused-css-ignore */
+.progreso-equal {
+	background-color: #aab;
+	color: #233;
+}
+
+/* =========================================================
+   Estados :hover / :active (una sola media query)
+   ========================================================= */
+@media (hover: hover) and (pointer: fine) {
+	.topbar-link:hover {
+		background-color: var(--primary-hover);
+	}
+
+	.btn-primary:hover,
+	.btn-secondary:hover {
+		background-color: var(--btn-hover);
+		transform: translateY(-2px);
+	}
+	.btn:active {
+		background-color: var(--btn-hover);
+		transform: translateY(0);
+	}
+
+	.grid .card:hover {
+		transform: translateY(-4px);
+		box-shadow: 0 6px 12px #ddd;
+	}
+	.grid .card:active {
+		transform: translateY(-1px);
+	}
+
+	/* unused-css-ignore */
+	.cal-day:hover {
+		transform: translateY(-2px);
+		box-shadow: 0 4px 8px #ddd;
+	}
+}
+
+/* =========================================================
+   Responsive
+   ========================================================= */
+@media (min-width: 700px) {
+	.dashboard-container {
+		display: grid;
+		grid-template-columns: var(--grid-2);
+		gap: var(--gap);
+		align-items: stretch;
+	}
+	.dashboard-container > .card:last-child {
+		grid-column: 1 / -1;
+	}
+	.dashboard-container > .card:last-child:nth-child(even) {
+		grid-column: auto;
+	}
+
+	.grid {
+		grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+	}
+
+	.container {
+		padding: 24px 18px;
+		padding-inline: max(18px, env(safe-area-inset-left)) max(18px, env(safe-area-inset-right));
+	}
+
+	.hero {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 20px;
+		align-items: center;
+	}
+	.hero img {
+		height: 300px;
+		margin: 0;
+	}
+
+	.stats {
+		grid-template-columns: var(--grid-3);
+	}
+}
+
+@media (min-width: 948px) {
+	.topbar {
+		padding-left: calc((100% - var(--max-width)) / 2);
+		padding-right: calc((100% - var(--max-width)) / 2);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.btn,
+	.grid .card,
+	.switch-slider,
+	.switch-slider::before,
+	/* unused-css-ignore */
+	.cal-day {
+		transition: none;
+	}
+	.btn:hover,
+	.btn:active,
+	.grid .card:hover,
+	.grid .card:active,
+	/* unused-css-ignore */
+	.cal-day:hover {
+		transform: none;
+	}
+}

@@ -1,0 +1,27 @@
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor / VS Code
+.vscode/*
+!.vscode/extensions.json
+
+# Dependencias y builds (si usas npm/Node para herramientas como Sass, Webpack, Vite, etc.)
+node_modules/
+dist/
+build/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Variables de entorno
+.env
+
+# Archivos temporales
+*.tmp
+*.bak
+
+# Configuracioens locales
+*.csv

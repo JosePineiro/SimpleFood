@@ -1,0 +1,35 @@
+{
+	"name": "simplegym",
+	"version": "1.0.0",
+	"description": "",
+	"main": "index.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/JosePineiro/SimpleGym.git"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"type": "commonjs",
+	"bugs": {
+		"url": "https://github.com/JosePineiro/SimpleGym/issues"
+	},
+	"homepage": "https://github.com/JosePineiro/SimpleGym#readme",
+	"browserslist": [
+		"last 2 Chrome versions",
+		"last 2 Edge versions",
+		"last 2 Firefox versions",
+		"last 2 iOS versions"
+	],
+	"devDependencies": {
+		"@biomejs/biome": "2.5.14",
+		"html-minifier-next": "8.6.0",
+		"html-validate": "^11.16.0",
+		"lightningcss-cli": "1.33.0",
+		"oxc-minify": "0.151.0",
+		"svgo": "4.1.0"
+	}
+}

@@ -1,0 +1,281 @@
+name: Minify and Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    concurrency:
+      group: minify-and-deploy-${{ github.ref }}
+      cancel-in-progress: true
+
+    steps:
+      # ============================================================
+      # 1. Checkout de main
+      # ============================================================
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      # ============================================================
+      # 2. Node.js
+      # ============================================================
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+
+      # ============================================================
+      # 3. Instalar exactamente lo definido en package-lock.json
+      # ============================================================
+      - name: Install dependencies
+        run: npm ci
+
+      # ============================================================
+      # 4. Crear directorio de producción
+      # ============================================================
+      - name: Prepare dist
+        run: |
+          rm -rf dist
+          mkdir -p dist
+
+      # ============================================================
+      # 5. Copiar archivos estáticos que NO se minifican
+      #
+      # Se copian imágenes, fuentes, JSON, favicon, CNAME, etc.
+      # Se excluyen los archivos ocultos.
+      # Se excluyen los archivos fuente que procesaremos después.
+      # ============================================================
+      - name: Copy static assets
+        run: |
+          rsync -av \
+            --exclude='.*' \
+            --exclude='node_modules/' \
+            --exclude='dist/' \
+            --exclude='package.json' \
+            --exclude='package-lock.json' \
+            --exclude='README*' \
+            --exclude='LICENSE*' \
+            --exclude='*.html' \
+            --exclude='*.htm' \
+            --exclude='*.shtml' \
+            --exclude='*.shtm' \
+            --exclude='*.css' \
+            --exclude='*.js' \
+            --exclude='*.mjs' \
+            --exclude='*.svg' \
+            ./ dist/
+
+      # ============================================================
+      # 6. Copiar HTML, CSS, JavaScript y SVG manteniendo estructura
+      # ============================================================
+      - name: Copy source files
+        shell: bash
+        run: |
+          find . -type f \
+            \( \
+              -name "*.html" \
+              -o -name "*.htm" \
+              -o -name "*.shtml" \
+              -o -name "*.shtm" \
+              -o -name "*.css" \
+              -o -name "*.js" \
+              -o -name "*.mjs" \
+              -o -name "*.svg" \
+            \) \
+            -not -path "./.git/*" \
+            -not -path "./.github/*" \
+            -not -path "./node_modules/*" \
+            -not -path "./dist/*" \
+            -print0 |
+          while IFS= read -r -d '' file; do
+            target="dist/${file#./}"
+
+            mkdir -p "$(dirname "$target")"
+            cp "$file" "$target"
+          done
+
+      # ============================================================
+      # 7. Medir tamaño antes de minificar
+      # ============================================================
+      - name: Measure size before minification
+        id: size-before
+        shell: bash
+        run: |
+          TOTAL=$(find dist -type f \
+            \( \
+              -name "*.html" \
+              -o -name "*.htm" \
+              -o -name "*.shtml" \
+              -o -name "*.shtm" \
+              -o -name "*.css" \
+              -o -name "*.js" \
+              -o -name "*.mjs" \
+              -o -name "*.svg" \
+            \) \
+            -exec stat -c%s {} + |
+            awk '{s += $1} END {print s + 0}')
+
+          echo "total=$TOTAL" >> "$GITHUB_OUTPUT"
+
+          echo "Tamaño antes de minificar: $TOTAL bytes"
+
+      # ============================================================
+      # 8. Minificar HTML
+      #
+      # --no-install garantiza que se utilice la versión instalada
+      # desde package-lock.json y NO otra descargada por npx.
+      #
+      # minify-css y minify-js permiten minificar también CSS/JS
+      # inline dentro de los documentos HTML.
+      # ============================================================
+      - name: Minify HTML
+        run: |
+          npx --no-install html-minifier-next \
+            --input-dir dist \
+            --output-dir dist \
+            --file-ext html,htm,shtml,shtm \
+            --preset=comprehensive \
+            --sort-attributes \
+            --minify-css \
+            --minify-js \
+            --minify-svg
+
+      # ============================================================
+      # 9. Minificar CSS
+      # ============================================================
+      - name: Minify CSS
+        shell: bash
+        run: |
+          find dist -type f -name "*.css" -print0 |
+          while IFS= read -r -d '' file; do
+            tmp="$(mktemp)"
+
+            npx --no-install lightningcss \
+              --minify \
+              "$file" \
+              -o "$tmp"
+
+            mv "$tmp" "$file"
+          done
+
+      # ============================================================
+      # 10. Minificar JavaScript con oxc-minify. Ejecutamos el minificador mediante un script inline de Node.js
+      # ============================================================
+      - name: Minify JavaScript
+        shell: bash
+        run: |
+          node -e "
+            const fs = require('fs');
+            const path = require('path');
+            const { minifySync } = require('oxc-minify');
+
+            function walkDir(dir) {
+              fs.readdirSync(dir, { withFileTypes: true }).forEach(dirent => {
+                const res = path.join(dir, dirent.name);
+                if (dirent.isDirectory()) {
+                  walkDir(res);
+                } else if (dirent.isFile() && (res.endsWith('.js') || res.endsWith('.mjs'))) {
+                  try {
+                    const originalCode = fs.readFileSync(res, 'utf8');
+                    const result = minifySync(res, originalCode, {
+                      mangle: true,
+                      compress: true
+                    });
+
+                    if (result.errors && result.errors.length > 0) {
+                      console.error('Errores en la minificación de ' + res + ':', result.errors);
+                      process.exit(1);
+                    }
+
+                    fs.writeFileSync(res, result.code, 'utf8');
+                    console.log('Minificado exitosamente: ' + res);
+                  } catch (err) {
+                    console.error('Error procesando el archivo ' + res + ':', err.message);
+                    process.exit(1);
+                  }
+                }
+              });
+            }
+
+            walkDir('dist');
+          "
+
+      # ============================================================
+      # 11. Optimizar archivos SVG con svger-cli
+      # ============================================================
+      - name: Optimize SVG files
+        shell: bash
+        run: |
+          find dist -type f -name "*.svg" -print0 |
+          while IFS= read -r -d '' file; do
+            npx --no-install svgo "$file" --multipass
+          done
+
+      # ============================================================
+      # 12. Medir ahorro de minificación
+      # ============================================================
+      - name: Report minification savings
+        shell: bash
+        run: |
+          TOTAL_AFTER=$(find dist -type f \
+            \( \
+              -name "*.html" \
+              -o -name "*.htm" \
+              -o -name "*.shtml" \
+              -o -name "*.shtm" \
+              -o -name "*.css" \
+              -o -name "*.js" \
+              -o -name "*.mjs" \
+              -o -name "*.svg" \
+            \) \
+            -exec stat -c%s {} + |
+            awk '{s += $1} END {print s + 0}')
+
+          BEFORE=${{ steps.size-before.outputs.total }}
+          AFTER=$TOTAL_AFTER
+          SAVED=$((BEFORE - AFTER))
+
+          if [ "$BEFORE" -gt 0 ]; then
+            PERCENT=$(awk \
+              "BEGIN {printf \"%.2f\", ($SAVED / $BEFORE) * 100}")
+          else
+            PERCENT="0.00"
+          fi
+
+          {
+            echo "## 📊 Resumen de minificación"
+            echo ""
+            echo "| Métrica | Valor |"
+            echo "|---|---:|"
+            echo "| Tamaño original | $BEFORE bytes |"
+            echo "| Tamaño minificado | $AFTER bytes |"
+            echo "| **Ahorro total** | **$SAVED bytes** |"
+            echo "| **Reducción** | **$PERCENT%** |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          echo ""
+          echo "=========================================="
+          echo "Tamaño original:    $BEFORE bytes"
+          echo "Tamaño minificado:  $AFTER bytes"
+          echo "Ahorro:             $SAVED bytes"
+          echo "Reducción:          $PERCENT%"
+          echo "=========================================="
+
+      # ============================================================
+      # 13. Publicar dist en gh-pages
+      # ============================================================
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: ./dist
+          force_orphan: true
