@@ -7,6 +7,11 @@ function setText(id, texto) {
 	if (el) el.textContent = texto;
 }
 
+function hideElement(id, ocultar = true) {
+	const el = document.getElementById(id);
+	if (el) el.style.display = ocultar ? 'none' : '';
+}
+
 function formatearUnDecimal(numero) {
 	return new Intl.NumberFormat('es-ES', {
 		minimumFractionDigits: 1,
@@ -17,21 +22,29 @@ function formatearUnDecimal(numero) {
 /* =========================================================
    Config
    ========================================================= */
-const OFF_API = "https://world.openfoodfacts.org/api/v2/product/";
+const MAX_REINTENTOS = 3;
+const TIEMPO_REINTENTOS_MS = 3000; // 3 segundos
+const HEADERS = { "User-Agent": "SimpleFood/1.0 (contacto@ejemplo.com)", };
+const OFF_API_V3 = "https://world.openfoodfacts.org/api/v3/product/";
 const OFF_FIELDS = [
 	"product_name",
+	"product_name_en",
 	"product_name_es",
 	"generic_name",
 	"generic_name_es",
+	"image_front_small_url",
 	"image_front_url",
+	"image_small_url",
 	"image_url",
 	"ingredients_text",
 	"ingredients_text_es",
+	"ingredients_text_en",
 	"nutriments",
 	"nova_group",
 	"product_quantity_unit",
 	"nutrition_data_per",
 	"categories_tags",
+	"nutriscore_2023_tags"
 ].join(",");
 
 const FORMATOS = [
@@ -142,33 +155,109 @@ function onScanError() {
 /* =========================================================
    Open Food Facts
    ========================================================= */
+
+// async function procesarCodigo(codigo) {
+// 	setText("estado-escaneo", `Código detectado: ${codigo}. Consultando Open Food Facts…`);
+// 	try {
+// 		const resp = await fetch(`${OFF_API}${codigo}.json?fields=${OFF_FIELDS}`);
+// 		if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+// 		const data = await resp.json();
+// 		if (data.status === 0 || !data.product) {
+// 			mostrarError(`Producto no encontrado en Open Food Facts (código ${codigo}).`);
+// 			return;
+// 		}
+// 		mostrarProducto(data.product);
+// 		setText("estado-escaneo", `Código leído: ${codigo}`);
+// 	} catch (error) {
+// 		console.error("[escaner] procesarCodigo:", error);
+// 		mostrarError(`Error al consultar Open Food Facts: ${error?.message || error}`);
+// 	}
+// }
+/**
+ * Realiza una petición fetch con lógica de reintentos.
+ * @param {string} url - La URL a consultar.
+ * @returns {Promise<Response>} - La respuesta de la petición.
+ */
+async function fetchConReintentos(url) {
+	for (let intento = 1; intento <= MAX_REINTENTOS; intento++) {
+		try {
+			const resp = await fetch(url, { headers: HEADERS });
+
+			// Si la respuesta es exitosa (2xx), la devolvemos.
+			if (resp.ok) {
+				return resp;
+			}
+
+			// Determinamos si el error es "transitorio" y merece un reintento.
+			// 429: Too Many Requests, 5xx: Errores del servidor (503, 500, etc.).
+			const esErrorTransitorio = resp.status === 429 || (resp.status >= 500 && resp.status <= 599);
+
+			if (!esErrorTransitorio || intento === MAX_REINTENTOS) {
+				// Si no es transitorio o es el último intento, lanzamos el error.
+				throw new Error(`HTTP ${resp.status}`);
+			}
+
+			// Es un error transitorio y no es el último intento: esperamos y reintentamos.
+			console.warn(`[escaner] Intento ${intento} fallido con estado ${resp.status}. Reintentando en ${TIEMPO_REINTENTOS_MS / 1000}s...`);
+			await new Promise(resolve => setTimeout(resolve, TIEMPO_REINTENTOS_MS));
+
+		} catch (error) {
+			// Si es un error de red (no HTTP) y es el último intento, lo lanzamos.
+			if (intento === MAX_REINTENTOS) {
+				throw error;
+			}
+			// Si es un error de red, también esperamos y reintentamos.
+			console.warn(`[escaner] Intento ${intento} fallido por error de red. Reintentando en ${TIEMPO_REINTENTOS_MS / 1000}s...`);
+			await new Promise(resolve => setTimeout(resolve, TIEMPO_REINTENTOS_MS));
+		}
+	}
+	// Este punto no debería alcanzarse, pero es una salvaguarda.
+	throw new Error("Se agotaron todos los intentos.");
+}
+
+
+/**
+ * Procesa el código de barras consultando la API v3 de Open Food Facts.
+ * @param {string} codigo - El código de barras del producto.
+ */
 async function procesarCodigo(codigo) {
 	setText("estado-escaneo", `Código detectado: ${codigo}. Consultando Open Food Facts…`);
 	try {
-		const resp = await fetch(`${OFF_API}${codigo}.json?fields=${OFF_FIELDS}`);
-		if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+		// 1. Construimos la URL para la API v3.
+		const url = `${OFF_API_V3}${codigo}.json?fields=${OFF_FIELDS}`;
+		// const url = `${OFF_API_V3}${codigo}.json`;
+
+		// 2. Usamos la función de fetch con reintentos.
+		const resp = await fetchConReintentos(url);
 		const data = await resp.json();
-		if (data.status === 0 || !data.product) {
+
+		// 3. Si el producto no se encuentra, 'product' estará vacío o no existirá.
+		if (data.status !== "success" || !data.product) {
 			mostrarError(`Producto no encontrado en Open Food Facts (código ${codigo}).`);
 			return;
 		}
+
+		// 4. Los datos del producto están anidados en 'data.product'.
 		mostrarProducto(data.product);
 		setText("estado-escaneo", `Código leído: ${codigo}`);
+
 	} catch (error) {
 		console.error("[escaner] procesarCodigo:", error);
 		mostrarError(`Error al consultar Open Food Facts: ${error?.message || error}`);
 	}
 }
 
+
 /* =========================================================
-   Reglas OPS / NOVA
+   Reglas OPS 
    ========================================================= */
 function getGrupoNova(producto) {
-	const n = parseInt(producto.nova_group, 10);
-	return n >= 1 && n <= 4 ? n : null;
+	const rawNova = producto.nova_group ?? producto.nutriments?.nova_group ?? null;
+	const grupoNova = rawNova === null ? null : (Number.isNaN(parseInt(rawNova, 10)) ? null : parseInt(rawNova, 10));
+	return grupoNova;
 }
 
-function esLiquido(producto) {
+function getEsLiquido(producto) {
 	// 1. Comprobación por categorías
 	const cats = (producto.categories_tags || []).join(" ").toLowerCase();
 	const porCategorias = /\b(water|waters|agua|bebida|beverage|drink|juice|jugo|zumo|soda|refresco|milk|leche|smoothie|batido|beer|cerveza|wine|vino|cider|sidra)\b/.test(cats);
@@ -254,26 +343,23 @@ function esUltraprocesado(producto) {
 	return marcadores.some((m) => texto.includes(m));
 }
 
-function calcularSellos(producto) {
-	const g = getGrupoNova(producto);
-	if (g === 1 || g === 2) return [];
+function calcularSellos(nutrientes, grupoNova, esLiquido) {
+	if (grupoNova === 1 || grupoNova === 2) return [];
 
-	const n = producto.nutriments || {};
-	const liq = esLiquido(producto);
-	const T = liq
+	const Maximo = esLiquido
 		? { azucar: 3, grasaSat: 5, grasaTot: 10, kcal: 70, sodioMg: 100 }
 		: { azucar: 4, grasaSat: 10, grasaTot: 20, kcal: 275, sodioMg: 400 };
 
 	const sellos = [];
-	if (estimarAzucaresLibres(producto, n) > T.azucar) sellos.push("Exceso en azúcares");
-	if (Number(n["saturated-fat_100g"] ?? 0) > T.grasaSat) sellos.push("Exceso en grasas saturadas");
-	if (Number(n.fat_100g ?? 0) > T.grasaTot) sellos.push("Exceso en grasas totales");
-	if (Number(n["energy-kcal_100g"] ?? 0) > T.kcal) sellos.push("Exceso en calorías");
+	if (estimarAzucaresLibres(nutrientes, nutrientes) > Maximo.azucar) sellos.push("Exceso en azúcares");
+	if (Number(nutrientes["saturated-fat_100g"] ?? 0) > Maximo.grasaSat) sellos.push("Exceso en grasas saturadas");
+	if (Number(nutrientes.fat_100g ?? 0) > Maximo.grasaTot) sellos.push("Exceso en grasas totales");
+	if (Number(nutrientes["energy-kcal_100g"] ?? 0) > Maximo.kcal) sellos.push("Exceso en calorías");
 
-	const sodioMg = n.sodium_100g != null
-		? Number(n.sodium_100g) * 1000
-		: Number(n.salt_100g ?? 0) * 400;
-	if (sodioMg > T.sodioMg) sellos.push("Exceso en sodio");
+	const sodioMg = nutrientes.sodium_100g != null
+		? Number(nutrientes.sodium_100g) * 1000
+		: Number(nutrientes.salt_100g ?? 0) * 400;
+	if (sodioMg > Maximo.sodioMg) sellos.push("Exceso en sodio");
 
 	return sellos;
 }
@@ -330,7 +416,10 @@ function renderizarNutrientes(n) {
 function renderizarSellos(producto) {
 	const cont = document.getElementById("sellos");
 	cont.innerHTML = "";
-	const sellos = calcularSellos(producto);
+	const grupoNova = getGrupoNova(producto);
+	const esLiquido = getEsLiquido(producto);
+
+	const sellos = calcularSellos(producto.nutriments, grupoNova, esLiquido);
 	const ultra = esUltraprocesado(producto);
 	const alcohol = contieneAlcohol(producto);
 
@@ -349,7 +438,7 @@ function renderizarSellos(producto) {
 	if (ultra) {
 		const div = document.createElement("div");
 		div.className = "octogono octogono--ultra";
-		div.textContent = "Ultraprocesado";
+		div.textContent = "Ultra procesado";
 		cont.appendChild(div);
 	}
 	if (sellos.length === 0 && !alcohol && !ultra) {
@@ -367,27 +456,34 @@ function mostrarProducto(producto) {
 	document.getElementById("error-card").hidden = true;
 	document.getElementById("resultado").hidden = false;
 
-	const nombre =
-		producto.product_name_es ||
-		producto.product_name ||
-		producto.generic_name_es ||
-		producto.generic_name ||
-		"Denominación no disponible";
+	const nombreComercial = producto.product_name_es?.trim() || producto.product_name?.trim() || producto.product_name_en?.trim();
+	if (nombreComercial) setText("nombre-producto", nombreComercial);
 
-	setText("nombre-producto", nombre);
-	setText("denominacion", nombre);
+	const nombreGenerico = producto.generic_name_es?.trim() || producto.generic_name?.trim();
+	if (nombreGenerico) {
+		setText("denominacion", nombreGenerico);
+		hideElement("denominacion-seccion", false);
+	}
+	else
+		hideElement("denominacion-seccion", true);
+
+	const ingredientes = producto.ingredients_text_es?.trim() || producto.ingredients_text?.trim();
+	if (ingredientes) {
+		setText("ingredientes", ingredientes);
+		hideElement("denominacion-ingredientes", false);
+	} else
+		hideElement("denominacion-ingredientes", true);
 
 	const img = document.getElementById("foto-producto");
-	const url = producto.image_front_url || producto.image_url || "";
+	const url = producto.image_front_url || producto.image_url || producto.image_front_small_url || producto.image_small_url || "";
 	if (url) {
 		img.src = url;
-		img.alt = `Foto de ${nombre}`;
+		img.alt = `Foto de ${nombreComercial || "producto"}`;
 		img.hidden = false;
 	} else {
 		img.hidden = true;
 	}
 
-	setText("ingredientes", producto.ingredients_text_es || producto.ingredients_text || "Ingredientes no disponibles.");
 	renderizarNutrientes(producto.nutriments || {});
 	renderizarSellos(producto);
 }
