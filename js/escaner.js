@@ -83,11 +83,21 @@ async function comprobarCamaraDisponible() {
 /* =========================================================
    Arranque / parada de la cámara
    ========================================================= */
+function mostrarPanelCamara(mostrar) {
+	const panel = document.getElementById("camara-panel");
+	if (panel) panel.hidden = !mostrar;
+}
+
 async function iniciarCamara() {
 	if (escaneando) return;
 	document.getElementById("resultado").hidden = true;
 	document.getElementById("error-card").hidden = true;
 	setText("estado-escaneo", "");
+	ultimoCodigo = null; // permite volver a escanear el mismo producto
+
+	// Mostrar el visor ANTES de crear/arrancar el scanner:
+	// html5-qrcode necesita que #reader tenga dimensiones.
+	mostrarPanelCamara(true);
 
 	try {
 		if (typeof Html5Qrcode === "undefined") {
@@ -108,7 +118,6 @@ async function iniciarCamara() {
 			{ facingMode: "environment" },
 			{
 				fps: 10,
-				// Caja ancha para códigos 1D (los QR necesitan cuadrada)
 				qrbox: { width: 280, height: 160 },
 				aspectRatio: 4 / 3,
 			},
@@ -139,8 +148,8 @@ async function detenerCamara() {
 	escaneando = false;
 	document.getElementById("btn-iniciar").hidden = false;
 	document.getElementById("btn-detener").hidden = true;
+	mostrarPanelCamara(false); // ← ocultar visor e instrucciones
 }
-
 function onScanSuccess(decodedText) {
 	if (decodedText === ultimoCodigo) return;
 	ultimoCodigo = decodedText;
@@ -251,10 +260,26 @@ async function procesarCodigo(codigo) {
 /* =========================================================
    Reglas OPS 
    ========================================================= */
+/**
+ * Obtiene el grupo NOVA (1–4) de un producto.
+ * - Si `nova_group` es válido (entero 1–4), se respeta tal cual.
+ * - Si no, se infiere analizando los ingredientes: aditivos cosméticos
+ *   o marcadores de ultraprocesado → 4; si no hay indicios → null.
+ * @param {object} producto
+ * @returns {1|2|3|4|null}
+ */
 function getGrupoNova(producto) {
-	const rawNova = producto.nova_group ?? producto.nutriments?.nova_group ?? null;
-	const grupoNova = rawNova === null ? null : (Number.isNaN(parseInt(rawNova, 10)) ? null : parseInt(rawNova, 10));
-	return grupoNova;
+	// 1. Campo oficial
+	const rawNova = producto?.nova_group ?? producto?.nutriments?.nova_group;
+	const n = rawNova == null || rawNova === "" ? NaN : Number(rawNova);
+	if (Number.isInteger(n) && n >= 1 && n <= 4) return n;
+
+	// 2. Sin dato NOVA: inferir ultraprocesado por ingredientes
+	const texto = String(producto?.ingredients_text_es || producto?.ingredients_text || "").toUpperCase();
+	const aditivos = texto.match(/E\d{3,4}[A-Z]?/g) || [];
+	if (aditivos.some((e) => ADITIVOS_COSMETICOS.has(e))) return 4;
+	if (MARCADORES_ULTRAPROCESADO.some((m) => texto.includes(m))) return 4;
+	return null;
 }
 
 function getEsLiquido(producto) {
@@ -325,23 +350,11 @@ const ADITIVOS_COSMETICOS = new Set([
 	"E631", "E632", "E633", "E634", "E635", "E640", "E641", "E650", "E900", "E901", "E902", "E903", "E904", "E905",
 	"E907", "E912", "E914", "E920", "E921", "E922", "E923", "E924", "E925", "E926", "E927", "E928", "E930", "E938",
 	"E939", "E941", "E942", "E943", "E944", "E948", "E949", "E950", "E951", "E952", "E953", "E954", "E955", "E956",
-	"E957", "E958", "E959", "E960", "E961", "E962", "E963", "E964", "E965", "E966", "E967", "E968", "E969", "E999",
-]);
+	"E957", "E958", "E959", "E960", "E961", "E962", "E963", "E964", "E965", "E966", "E967", "E968", "E969", "E999"]);
 
-function esUltraprocesado(producto) {
-	const g = getGrupoNova(producto);
-	if (g === 4) return true;
-	if (g === 1 || g === 2 || g === 3) return false;
-	const texto = String(producto.ingredients_text_es || producto.ingredients_text || "").toUpperCase();
-	const nums = texto.match(/E\d{3,4}[A-Z]?/g) || [];
-	if (nums.some((e) => ADITIVOS_COSMETICOS.has(e))) return true;
-	const marcadores = [
-		"JARABE DE GLUCOSA", "JARABE DE MAIZ", "JARABE DE MAÍZ", "ALMIDON MODIFICADO", "ALMIDÓN MODIFICADO",
-		"ACEITE DE PALMA", "PROTEINA HIDROLIZADA", "PROTEÍNA HIDROLIZADA", "AROMA", "AROMAS",
-		"COLORANTE", "EMULGENTE", "EDULCORANTE",
-	];
-	return marcadores.some((m) => texto.includes(m));
-}
+const MARCADORES_ULTRAPROCESADO = [
+	"JARABE DE GLUCOSA", "JARABE DE MAIZ", "JARABE DE MAÍZ", "ALMIDON MODIFICADO", "ALMIDÓN MODIFICADO",
+	"ACEITE DE PALMA", "PROTEINA HIDROLIZADA", "PROTEÍNA HIDROLIZADA", "AROMA", "COLORANTE", "EMULGENTE", "EDULCORANTE"];
 
 function calcularSellos(nutrientes, grupoNova, esLiquido) {
 	if (grupoNova === 1 || grupoNova === 2) return [];
@@ -373,7 +386,8 @@ function mostrarError(mensaje) {
 	setText("error-msg", mensaje);
 }
 
-function renderizarNutrientes(n) {
+function renderizarNutrientes(n, esLiquido) {
+	setText("nutrientes-titulo", `Información nutricional (por 100 ${esLiquido ? "ml" : "g"})`);
 	const dl = document.getElementById("nutrientes");
 	dl.innerHTML = "";
 
@@ -413,16 +427,13 @@ function renderizarNutrientes(n) {
 }
 
 
-function renderizarSellos(producto) {
+function renderizarSellos(producto, esLiquido) {
+	const grupoNova = getGrupoNova(producto);
+	const alcohol = contieneAlcohol(producto);
+	const sellos = calcularSellos(producto.nutriments, grupoNova, esLiquido);
+
 	const cont = document.getElementById("sellos");
 	cont.innerHTML = "";
-	const grupoNova = getGrupoNova(producto);
-	const esLiquido = getEsLiquido(producto);
-
-	const sellos = calcularSellos(producto.nutriments, grupoNova, esLiquido);
-	const ultra = esUltraprocesado(producto);
-	const alcohol = contieneAlcohol(producto);
-
 	for (const texto of sellos) {
 		const div = document.createElement("div");
 		div.className = "octogono";
@@ -435,19 +446,23 @@ function renderizarSellos(producto) {
 		div.textContent = "Alcohol";
 		cont.appendChild(div);
 	}
-	if (ultra) {
+	if (grupoNova === 4) {
 		const div = document.createElement("div");
 		div.className = "octogono octogono--ultra";
 		div.textContent = "Ultra procesado";
 		cont.appendChild(div);
 	}
-	if (sellos.length === 0 && !alcohol && !ultra) {
+	if (sellos.length === 0 && !alcohol) {
 		const p = document.createElement("p");
 		p.className = "card-text";
-		const g = getGrupoNova(producto);
-		p.textContent = (g === 1 || g === 2)
-			? "Alimento sin procesar o ingrediente culinario: no corresponde sello negro."
-			: "No supera los umbrales de la OPS para ningún nutriente crítico.";
+		if (grupoNova === null)
+			p.textContent = "No se ha podido averiguar el grupo NOVA."
+		if (grupoNova === 1)
+			p.textContent = "Alimento sin procesar: no corresponde sello negro."
+		else if (grupoNova === 2)
+			p.textContent = "Ingrediente culinario: no corresponde sello negro."
+		else if (grupoNova === 3)
+			p.textContent = "No supera los umbrales de la OPS para ningún nutriente crítico."
 		cont.appendChild(p);
 	}
 }
@@ -484,14 +499,21 @@ function mostrarProducto(producto) {
 		img.hidden = true;
 	}
 
-	renderizarNutrientes(producto.nutriments || {});
-	renderizarSellos(producto);
+	const esLiquido = getEsLiquido(producto);
+	renderizarNutrientes(producto.nutriments || {}, esLiquido);
+	renderizarSellos(producto, esLiquido);
 }
 
 /* =========================================================
    Eventos
    ========================================================= */
-document.getElementById("btn-iniciar").addEventListener("click", iniciarCamara);
+document.getElementById("btn-iniciar").addEventListener("click", async () => {
+	// Al arrancar la cámara, cerramos la entrada manual (si estaba abierta).
+	document.getElementById("form-manual-wrap").hidden = true;
+
+	await iniciarCamara();
+});
+
 document.getElementById("btn-detener").addEventListener("click", async () => {
 	await detenerCamara();
 	setText("estado-escaneo", "");
@@ -509,3 +531,18 @@ document.getElementById("form-manual").addEventListener("submit", (ev) => {
 });
 
 window.addEventListener("pagehide", detenerCamara);
+
+const btnManual = document.getElementById("btn-manual");
+btnManual.addEventListener("click", async () => {
+	const formManualWrap = document.getElementById("form-manual-wrap");
+
+	// Si ya está visible, no hace nada: el cierre lo provoca "Iniciar cámara".
+	if (!formManualWrap.hidden) return;
+
+	// Nos aseguramos de parar la cámara y ocultar #camara-panel antes de mostrar el formulario.
+	await detenerCamara();
+	setText("estado-escaneo", "");
+
+	formManualWrap.hidden = false;
+	document.getElementById("codigo-manual").focus();
+});

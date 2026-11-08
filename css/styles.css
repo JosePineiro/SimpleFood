@@ -1,5 +1,5 @@
 /* =========================================================
-   SIMPLEGYM — hoja de estilos única
+   SIMPLEFOOD — hoja de estilos única
    ========================================================= */
 
 :root {
@@ -13,7 +13,6 @@
 
 	--topbar-bg: #223;
 	--topbar-text: #fff;
-	--topbar-muted: #abc;
 
 	/* Espaciado y medidas */
 	--radius: 12px;
@@ -31,10 +30,6 @@
 	--grid-3: repeat(3, minmax(0, 1fr));
 
 	--font-sans: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-
-	/* Calendario */
-	--day-text: #123;
-	--day-best-text: #430;
 }
 
 /* ---------- Reset básico ---------- */
@@ -70,13 +65,9 @@ input {
 	display: none !important;
 }
 
-/* Foco accesible uniforme */
 .topbar-link:focus-visible,
 .btn:focus-visible,
-.grid .card:focus-visible,
-.finish-form input:focus-visible,
-/* unused-css-ignore */
-.cal-day:focus-visible {
+.finish-form input:focus-visible {
 	outline: var(--focus-ring);
 	outline-offset: var(--focus-offset);
 }
@@ -108,14 +99,6 @@ input {
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
-}
-
-.subtitulo {
-	margin: 0;
-	flex-shrink: 0;
-	white-space: nowrap;
-	font-size: clamp(0.7rem, 2.8vw, 0.85rem);
-	color: var(--topbar-muted);
 }
 
 .topbar-link {
@@ -152,12 +135,6 @@ input {
 	gap: var(--gap);
 }
 
-.grid {
-	display: grid;
-	grid-template-columns: var(--grid-2);
-	gap: clamp(12px, 3vw, var(--gap));
-}
-
 /* =========================================================
    Tarjetas
    ========================================================= */
@@ -169,9 +146,7 @@ input {
 	min-width: 0;
 }
 
-/* Título de tarjeta (compartido por h2 hijos y títulos ad-hoc) */
-.card > h2,
-.card-title {
+.card > h2 {
 	margin: 0 0 14px;
 	font-size: clamp(1.1rem, 4vw, 1.3rem);
 	color: #222;
@@ -185,7 +160,6 @@ input {
 	overflow-wrap: break-word;
 }
 
-/* Panel principal (index.html) */
 .dashboard-container .card {
 	text-align: center;
 	display: flex;
@@ -194,140 +168,6 @@ input {
 }
 .dashboard-container .card > h2 {
 	margin: 0;
-}
-
-/* Rejilla de tarjetas-enlace */
-.grid .card {
-	padding: 0;
-	overflow: hidden;
-	text-decoration: none;
-	color: inherit;
-	transition:
-		transform 0.2s ease,
-		box-shadow 0.2s ease,
-		opacity 0.2s ease;
-	display: flex;
-	flex-direction: column;
-	-webkit-tap-highlight-color: transparent;
-}
-
-.grid .card img {
-	width: 100%;
-	height: clamp(110px, 28vw, 160px);
-	object-fit: contain;
-	border-bottom: 1px solid #eee;
-	background-color: #fff;
-	display: block;
-}
-
-/* unused-css-ignore */
-.card-name {
-	padding: 12px;
-	text-align: center;
-	font-weight: 600;
-	font-size: clamp(0.85rem, 3.5vw, 0.95rem);
-	line-height: 1.3;
-	overflow-wrap: break-word;
-}
-
-/* unused-css-ignore */
-.completado {
-	opacity: 0.4;
-	filter: grayscale(80%);
-}
-
-/* Tarjeta hero (ejercicio.html) */
-.hero {
-	display: block;
-}
-.hero img,
-.exerciseImage {
-	display: block;
-	width: 100%;
-	height: auto;
-	aspect-ratio: 4 / 3;
-	object-fit: contain;
-	border-radius: 10px;
-	margin: 0;
-}
-.hero p {
-	line-height: 1.5;
-	margin: 0 0 12px;
-	color: var(--muted-color);
-}
-
-/* =========================================================
-   Interruptor (switch) reutilizable
-   ========================================================= */
-.switch {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	gap: 12px;
-	min-height: 44px;
-	padding: 4px 0;
-	cursor: pointer;
-	font-weight: 600;
-	text-align: left;
-	-webkit-tap-highlight-color: transparent;
-	user-select: none;
-}
-
-.switch input {
-	position: absolute;
-	opacity: 0;
-	width: 1px;
-	height: 1px;
-	pointer-events: none;
-}
-
-.switch-slider {
-	position: relative;
-	flex-shrink: 0;
-	width: 70px;
-	height: 32px;
-	background-color: #ccc;
-	border-radius: 999px;
-	transition: background-color 0.2s ease;
-}
-
-.switch-slider::before {
-	content: "";
-	position: absolute;
-	top: 3px;
-	left: 3px;
-	width: 26px;
-	height: 26px;
-	background-color: #fff;
-	border-radius: 50%;
-	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-	transition: transform 0.2s ease;
-}
-
-.switch input:checked ~ .switch-slider {
-	background-color: var(--primary-color);
-}
-
-.switch input:checked ~ .switch-slider::before {
-	transform: translateX(38px);
-}
-
-.switch input:focus-visible ~ .switch-slider {
-	outline: var(--focus-ring);
-	outline-offset: var(--focus-offset);
-}
-
-.switch input:disabled ~ .switch-slider {
-	opacity: 0.5;
-}
-
-.switch:has(input:disabled) {
-	cursor: not-allowed;
-}
-
-.switch-text {
-	flex: 1;
-	color: var(--text-color);
 }
 
 /* =========================================================
@@ -364,12 +204,8 @@ dl.stats {
 }
 
 /* =========================================================
-   Formularios de fin de ejercicio
+   Formularios (entrada manual del código)
    ========================================================= */
-.finish-form h2 {
-	margin-top: 0;
-	margin-bottom: 0;
-}
 .finish-form label {
 	display: block;
 	font-weight: 700;
@@ -393,9 +229,25 @@ dl.stats {
 	width: 100%;
 	margin-top: 8px;
 }
-
+/* Formulario en línea (input + botón en la misma fila) */
+.form-inline .form-row {
+	display: flex;
+	gap: 8px;
+	align-items: flex-end;
+}
+.form-inline .form-row > label {
+	flex: 1;
+	min-width: 0;
+	margin: 0; /* anula .finish-form label { margin: 10px 0 } */
+}
+.form-inline .form-row > .btn {
+	width: auto; /* anula .finish-form .btn { width: 100% } */
+	margin: 0; /* anula .finish-form .btn { margin-top: 8px } */
+	flex-shrink: 0;
+	white-space: nowrap;
+}
 /* =========================================================
-   Botones (un único .btn + variables de tema)
+   Botones
    ========================================================= */
 .btn {
 	--btn-bg: transparent;
@@ -436,20 +288,6 @@ dl.stats {
 	--btn-hover: #ddd;
 }
 
-.btn-large {
-	width: 100%;
-	font-size: 1.05rem;
-	padding: 14px;
-}
-
-/* unused-css-ignore */
-.btn-disabled {
-	opacity: 0.5;
-	pointer-events: none;
-	cursor: default;
-}
-
-/* Botonera e importación de ficheros */
 .btn-panel {
 	display: flex;
 	flex-wrap: wrap;
@@ -461,231 +299,75 @@ dl.stats {
 	min-width: 140px;
 }
 
-input[type="file"] {
-	display: none;
-}
-.file-label {
-	cursor: pointer;
-}
-
 /* =========================================================
-   Tablas
+   Escáner — visor de cámara (html5-qrcode)
    ========================================================= */
-.table-wrap {
-	overflow: auto;
-	margin-top: 12px;
-}
-table {
-	border-collapse: collapse;
-	width: 100%;
-	font-size: 0.9rem;
-}
-th,
-td {
-	text-align: left;
-	padding: 9px 3px;
-	border-bottom: 1px solid #eff;
-	white-space: nowrap;
-}
-
-/* unused-css-ignore */
-.numero {
-	text-align: right;
-}
-
-/* =========================================================
-   Gráficos
-   ========================================================= */
-.chart-wrap {
+.video-wrap {
 	position: relative;
 	width: 100%;
-	height: clamp(240px, 55vw, 420px);
+	aspect-ratio: 4 / 3;
+	background: #000;
+	border-radius: 10px;
+	overflow: hidden;
+	margin: 10px 0;
 }
-.chart-wrap canvas {
+.video-wrap video,
+.video-wrap canvas {
+	display: block !important;
+	width: 100% !important;
+	height: 100% !important;
+	object-fit: cover;
+}
+/* html5-qrcode inyecta botones feos: los ocultamos */
+#reader__dashboard_section_csr,
+#reader__dashboard_section_swaplink,
+#reader__header_message {
+	display: none !important;
+}
+
+/* Foto del producto */
+.producto-img {
 	display: block;
 	width: 100%;
-	height: 100%;
-	margin-top: 0;
-}
-
-/* =========================================================
-   Calendario (estadisticas-dias.html)
-   ========================================================= */
-
-/* Estados → mapa de calor en tonos azules (3 dígitos) */
-/* unused-css-ignore */
-.cal-day--none {
-	--cd-bg: #eef;
-	--cd-fg: #223;
-}
-.cal-day--some {
-	--cd-bg: #ace;
-	--cd-fg: #123;
-}
-.cal-day--all {
-	--cd-bg: #37c;
-	--cd-fg: #fff;
-}
-.cal-day--best {
-	--cd-bg: #136;
-	--cd-fg: #fff;
-}
-
-/* Base compartida día / muestra de leyenda */
-/* unused-css-ignore */
-.cal-day,
-.cal-swatch {
-	background: var(--cd-bg, #fff);
-	color: var(--cd-fg, var(--day-text));
+	max-height: 320px;
+	object-fit: contain;
+	background: #fff;
 	border: 1px solid #eee;
+	border-radius: 10px;
+	margin: 0 auto 12px;
 }
 
-/* Barra de navegación del mes */
-.cal-toolbar {
+/* Octógonos negros */
+.sellos {
 	display: flex;
-	align-items: center;
-	justify-content: space-between;
+	flex-wrap: wrap;
 	gap: 10px;
-	margin-bottom: 14px;
+	justify-content: center;
+	margin: 14px 0;
 }
-.cal-title {
-	flex: 1;
-	text-align: center;
-	text-transform: capitalize;
-	margin: 0;
-}
-.cal-nav {
-	padding: 8px 14px;
-	min-width: 44px;
-	min-height: 44px;
-	font-size: 1.2rem;
-	line-height: 1;
-}
-
-/* Cabecera de días y rejilla */
-.cal-weekdays {
-	display: grid;
-	grid-template-columns: repeat(7, 1fr);
-	gap: 4px;
-	margin-bottom: 6px;
-	font-size: 0.75rem;
-	font-weight: 700;
-	color: var(--muted-color);
-	text-align: center;
-}
-.cal-grid {
-	display: grid;
-	grid-template-columns: repeat(7, 1fr);
-	gap: 4px;
-}
-
-/* unused-css-ignore */
-.cal-day {
-	position: relative;
-	aspect-ratio: 1 / 1;
-	border-radius: 8px;
-	font: inherit;
-	font-size: clamp(0.75rem, 3vw, 0.9rem);
-	font-weight: 600;
+.octogono {
+	background: #000;
+	color: #fff;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	padding: 0;
-	cursor: pointer;
-	-webkit-tap-highlight-color: transparent;
-	transition:
-		transform 0.15s ease,
-		box-shadow 0.15s ease;
+	text-align: center;
+	width: 96px;
+	height: 96px;
+	padding: 10px 6px;
+	font-weight: 800;
+	font-size: 0.72rem;
+	line-height: 1.15;
+	letter-spacing: 0.3px;
+	text-transform: uppercase;
+	clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
 }
-/* unused-css-ignore */
-.cal-day:focus-visible {
-	z-index: 2;
-}
-/* unused-css-ignore */
-.cal-day--empty {
-	background: transparent;
-	border-color: transparent;
-	pointer-events: none;
-	cursor: default;
-}
-
-/* unused-css-ignore */
-.cal-day--hoy {
-	outline: 2px dashed var(--primary-color);
-	outline-offset: -3px;
-}
-/* unused-css-ignore */
-.cal-day--sel {
-	box-shadow: 0 0 0 3px #7bf;
-	z-index: 1;
-}
-
-/* Leyenda */
-.cal-leyenda {
-	list-style: none;
-	margin: 0;
-	padding: 0;
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
-	font-size: 0.9rem;
-	color: var(--muted-color);
-}
-.cal-leyenda li {
-	display: flex;
-	align-items: center;
-	gap: 10px;
-}
-.cal-swatch {
-	width: 22px;
-	height: 22px;
-	border-radius: 6px;
-	flex-shrink: 0;
-}
-
-/* Detalle del día */
-#detalleContenido .table-wrap {
-	margin-top: 12px;
-}
-#detalleContenido table {
-	font-size: 0.85rem;
-}
-#detalleContenido th,
-#detalleContenido td {
-	white-space: nowrap;
-	padding: 8px;
-}
-
-/* unused-css-ignore */
-.progreso-badge {
-	display: inline-block;
-	background: var(--day-best);
-	color: var(--day-best-text);
-	font-size: 0.75rem;
-	font-weight: 700;
-	padding: 2px 8px;
-	border-radius: 999px;
-	margin-left: 6px;
-	vertical-align: middle;
-}
-/* unused-css-ignore */
-.progreso-up {
-	background-color: #0f5;
-	color: #043;
-}
-/* unused-css-ignore */
-.progreso-down {
-	background-color: #f00;
-	color: #400;
-}
-/* unused-css-ignore */
-.progreso-equal {
-	background-color: #aab;
-	color: #233;
+.octogono--ultra {
+	font-size: 0.68rem;
 }
 
 /* =========================================================
-   Estados :hover / :active (una sola media query)
+   Estados :hover / :active
    ========================================================= */
 @media (hover: hover) and (pointer: fine) {
 	.topbar-link:hover {
@@ -700,20 +382,6 @@ td {
 	.btn:active {
 		background-color: var(--btn-hover);
 		transform: translateY(0);
-	}
-
-	.grid .card:hover {
-		transform: translateY(-4px);
-		box-shadow: 0 6px 12px #ddd;
-	}
-	.grid .card:active {
-		transform: translateY(-1px);
-	}
-
-	/* unused-css-ignore */
-	.cal-day:hover {
-		transform: translateY(-2px);
-		box-shadow: 0 4px 8px #ddd;
 	}
 }
 
@@ -734,24 +402,9 @@ td {
 		grid-column: auto;
 	}
 
-	.grid {
-		grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-	}
-
 	.container {
 		padding: 24px 18px;
 		padding-inline: max(18px, env(safe-area-inset-left)) max(18px, env(safe-area-inset-right));
-	}
-
-	.hero {
-		display: grid;
-		grid-template-columns: 1fr 1fr;
-		gap: 20px;
-		align-items: center;
-	}
-	.hero img {
-		height: 300px;
-		margin: 0;
 	}
 
 	.stats {
@@ -767,20 +420,11 @@ td {
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.btn,
-	.grid .card,
-	.switch-slider,
-	.switch-slider::before,
-	/* unused-css-ignore */
-	.cal-day {
+	.btn {
 		transition: none;
 	}
 	.btn:hover,
-	.btn:active,
-	.grid .card:hover,
-	.grid .card:active,
-	/* unused-css-ignore */
-	.cal-day:hover {
+	.btn:active {
 		transform: none;
 	}
 }

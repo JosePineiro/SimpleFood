@@ -6,7 +6,7 @@
 		<title>SIMPLEFOOD - Escáner de productos</title>
 		<link rel="icon" type="image/svg+xml" href="./favicon.svg">
 		<link rel="stylesheet" href="css/styles.css">
-		<link rel="stylesheet" href="css/escaner.css">
+		<!-- <link rel="stylesheet" href="css/escaner.css"> -->
 		<!-- html5-qrcode: UMD estable, expone Html5Qrcode globalmente -->
 		<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 		<script type="module" src="js/escaner.js"></script>
@@ -19,38 +19,41 @@
 		<main class="container">
 			<section class="dashboard-container">
 				<article class="card">
-					<h2>Escáner</h2>
-					<p class="card-text">Apunta al código de barras (EAN-13 / UPC) del producto.</p>
-
-					<!-- Contenedor donde html5-qrcode inyecta el <video> -->
-					<div id="reader" class="video-wrap" aria-label="Visor de la cámara"></div>
-
 					<div class="btn-panel">
-						<button type="button" class="btn btn-primary" id="btn-iniciar">Iniciar cámara</button>
-						<button type="button" class="btn btn-secondary" id="btn-detener" hidden>Detener</button>
+						<button type="button" class="btn btn-primary" id="btn-iniciar">Escanear código</button>
+						<button type="button" class="btn btn-secondary" id="btn-detener" hidden>Detener cámara</button>
+						<button type="button" class="btn btn-secondary" id="btn-manual" aria-controls="form-manual-wrap">
+							Introducir código
+						</button>
 					</div>
 
-					<p class="card-text" id="estado-escaneo"></p>
+					<div id="camara-panel" hidden>
+						<h2>Escáner</h2>
+						<p class="card-text">Apunta al código de barras (EAN-13 / UPC) del producto.</p>
+						<div id="reader" class="video-wrap" aria-label="Visor de la cámara"></div>
+						<p class="card-text" id="estado-escaneo"></p>
+					</div>
 
-					<details class="manual">
-						<summary>¿La cámara no funciona? Introduce el código a mano</summary>
-						<form id="form-manual" class="finish-form" novalidate>
-							<label for="codigo-manual">
-								Código de barras
-								<input
-									id="codigo-manual"
-									name="codigo"
-									type="text"
-									inputmode="numeric"
-									autocomplete="off"
-									pattern="\d{8,14}"
-									placeholder="Ej. 8412345678905"
-									required
-								>
-							</label>
-							<button type="submit" class="btn btn-primary">Buscar producto</button>
+					<div id="form-manual-wrap" hidden>
+						<form id="form-manual" class="finish-form form-inline" novalidate>
+							<div class="form-row">
+								<label for="codigo-manual">
+									Código de barras
+									<input
+										id="codigo-manual"
+										name="codigo"
+										type="text"
+										inputmode="numeric"
+										autocomplete="off"
+										pattern="\d{8,14}"
+										placeholder="Ej. 8412345678905"
+										required
+									>
+								</label>
+								<button type="submit" class="btn btn-primary">Buscar</button>
+							</div>
 						</form>
-					</details>
+					</div>
 				</article>
 
 				<article class="card" id="resultado" hidden>
@@ -65,7 +68,7 @@
 						<h3>Ingredientes</h3>
 						<p class="card-text" id="ingredientes">—</p>
 					</div>
-					<h3>Información nutricional (por 100 g / 100 ml)</h3>
+					<h3 id="nutrientes-titulo">Información nutricional (por 100 g / ml)</h3>
 					<dl class="stats" id="nutrientes"></dl>
 				</article>
 
