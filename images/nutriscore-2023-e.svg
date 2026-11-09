@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 280" width="100%" height="100%">
+  <defs>
+    <style>
+      .bg-card { fill: #FFFFFF; }
+      .bg-banner { fill: #003865; }
+      .text-title { font-family: 'Montserrat', 'Arial Black', 'Helvetica Neue', Arial, sans-serif; font-weight: 800; fill: #6B6B6B; font-size: 31px; letter-spacing: 1.5px; }
+      .text-banner { font-family: 'Montserrat', 'Arial Black', 'Helvetica Neue', Arial, sans-serif; font-weight: 800; fill: #FFFFFF; font-size: 31px; letter-spacing: 1px; }
+      .text-letter { font-family: 'Montserrat', 'Arial', 'Helvetica Neue', sans-serif; font-weight: 500; text-anchor: middle; dominant-baseline: central; }
+      .text-big-letter { font-family: 'Montserrat', 'Arial', 'Helvetica Neue', sans-serif; font-weight: 700; text-anchor: middle; dominant-baseline: central; }
+    </style>
+  </defs>
+  
+  <!-- Tarjeta contenedora blanca con bordes redondeados y borde gris -->
+  <rect x="8" y="8" width="370" height="242" rx="38" ry="38" class="bg-card" stroke="#8A8A8A" stroke-width="6"></rect>
+  
+  <!-- Texto Superior: NUTRI-SCORE -->
+  <text x="45" y="45" class="text-title">NUTRI-SCORE</text>
+  
+  <!-- Barra horizontal de la escala (B, C, D, E) -->
+  <g id="scale-bar">
+    <!-- Bloque A (Verde oscuro) -->
+    <path d="M 47 65 L 86 65 L 86 185 L 47 185 A 25 25 0 0 1 22 160 L 22 90 A 25 25 0 0 1 47 65 Z" fill="#008B47"></path>
+	<!-- Bloque B (Verde claro) -->
+    <rect x="86" y="65" width="60" height="120" fill="#85BB2F"></rect>
+	<!-- Bloque C (Amarillo) -->
+    <rect x="146" y="65" width="60" height="120" fill="#FECB02"></rect>
+	<!-- Bloque D (Naranja) -->
+    <rect x="206" y="65" width="72" height="120" fill="#EE8100"></rect>
+  </g>
+  
+  <!-- Letras semitransparentes dentro de la barra -->
+  <text x="54" y="125" class="text-letter" font-size="72" fill="#FFFFFF" fill-opacity="0.45">A</text>
+  <text x="116" y="125" class="text-letter" font-size="72" fill="#FFFFFF" fill-opacity="0.45">B</text>
+  <text x="176" y="125" class="text-letter" font-size="72" fill="#FFFFFF" fill-opacity="0.45">C</text>
+  <text x="237" y="125" class="text-letter" font-size="72" fill="#FFFFFF" fill-opacity="0.45">D</text>
+  
+  <!-- Borde blanco alrededor del óvalo E destacado -->
+  <rect x="268" y="48" width="102" height="154" rx="45" ry="45" fill="#FFFFFF"></rect>
+  <!-- Indicador E destacado (Rojo) -->
+  <rect x="274" y="54" width="90" height="142" rx="40" ry="40" fill="#E63312"></rect>
+    
+  <!-- Letra E destacada -->
+  <text x="319" y="125" class="text-big-letter" font-size="100" fill="#FFFFFF">E</text>
+    
+  <!-- Banda inferior azul: NUEVO CÁLCULO -->
+  <path d="M 11 203 L 375 203 L 375 208 A 36 36 0 0 1 339 248 L 47 248 A 36 36 0 0 1 11 208 Z" class="bg-banner"></path>
+  <text x="193" y="238" class="text-banner" text-anchor="middle">NUEVO CÁLCULO</text>
+</svg>

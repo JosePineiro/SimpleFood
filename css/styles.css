@@ -3,36 +3,30 @@
    ========================================================= */
 
 :root {
-	/* Paleta */
 	--bg-color: #eee;
 	--text-color: #333;
 	--card-bg: #fff;
 	--primary-color: #08f;
 	--primary-hover: #05b;
 	--muted-color: #666;
-
 	--topbar-bg: #223;
 	--topbar-text: #fff;
 
-	/* Espaciado y medidas */
 	--radius: 12px;
 	--gap: 20px;
 	--max-width: 900px;
 	--pad-x: clamp(12px, 4vw, 24px);
 	--card-pad: clamp(8px, 4vw, 24px);
 
-	/* Foco */
 	--focus-ring: 3px solid rgba(0, 123, 255, 0.4);
 	--focus-offset: 2px;
 
-	/* Rejillas */
 	--grid-2: repeat(2, minmax(0, 1fr));
 	--grid-3: repeat(3, minmax(0, 1fr));
 
 	--font-sans: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* ---------- Reset básico ---------- */
 *,
 *::before,
 *::after {
@@ -58,9 +52,7 @@ input {
 	font: inherit;
 }
 
-/* =========================================================
-   Utilidades
-   ========================================================= */
+/* ---------- Utilidades ---------- */
 [hidden] {
 	display: none !important;
 }
@@ -72,9 +64,7 @@ input {
 	outline-offset: var(--focus-offset);
 }
 
-/* =========================================================
-   Barra superior
-   ========================================================= */
+/* ---------- Barra superior ---------- */
 .topbar {
 	position: sticky;
 	top: 0;
@@ -114,9 +104,7 @@ input {
 	-webkit-tap-highlight-color: transparent;
 }
 
-/* =========================================================
-   Contenedor principal
-   ========================================================= */
+/* ---------- Contenedor ---------- */
 .container {
 	flex: 1;
 	width: 100%;
@@ -135,9 +123,7 @@ input {
 	gap: var(--gap);
 }
 
-/* =========================================================
-   Tarjetas
-   ========================================================= */
+/* ---------- Tarjetas ---------- */
 .card {
 	background-color: var(--card-bg);
 	border-radius: var(--radius);
@@ -170,25 +156,18 @@ input {
 	margin: 0;
 }
 
-/* =========================================================
-   Métricas (.stats)
-   ========================================================= */
+/* ---------- Métricas ---------- */
 .stats {
 	display: grid;
 	grid-template-columns: var(--grid-2);
 	gap: 8px;
+	margin: 0;
 }
 .stats > div {
 	background: #ddd;
 	border-radius: 10px;
 	padding: 10px;
 	min-width: 0;
-}
-dl.stats {
-	display: grid;
-	grid-template-columns: var(--grid-2);
-	gap: 8px;
-	margin-bottom: 0;
 }
 .stats dt {
 	display: block;
@@ -203,9 +182,7 @@ dl.stats {
 	font-weight: bold;
 }
 
-/* =========================================================
-   Formularios (entrada manual del código)
-   ========================================================= */
+/* ---------- Formulario ---------- */
 .finish-form label {
 	display: block;
 	font-weight: 700;
@@ -229,7 +206,7 @@ dl.stats {
 	width: 100%;
 	margin-top: 8px;
 }
-/* Formulario en línea (input + botón en la misma fila) */
+
 .form-inline .form-row {
 	display: flex;
 	gap: 8px;
@@ -238,17 +215,16 @@ dl.stats {
 .form-inline .form-row > label {
 	flex: 1;
 	min-width: 0;
-	margin: 0; /* anula .finish-form label { margin: 10px 0 } */
+	margin: 0;
 }
 .form-inline .form-row > .btn {
-	width: auto; /* anula .finish-form .btn { width: 100% } */
-	margin: 0; /* anula .finish-form .btn { margin-top: 8px } */
+	width: auto;
+	margin: 0;
 	flex-shrink: 0;
 	white-space: nowrap;
 }
-/* =========================================================
-   Botones
-   ========================================================= */
+
+/* ---------- Botones ---------- */
 .btn {
 	--btn-bg: transparent;
 	--btn-fg: inherit;
@@ -299,9 +275,7 @@ dl.stats {
 	min-width: 140px;
 }
 
-/* =========================================================
-   Escáner — visor de cámara (html5-qrcode)
-   ========================================================= */
+/* ---------- Escáner ---------- */
 .video-wrap {
 	position: relative;
 	width: 100%;
@@ -318,14 +292,13 @@ dl.stats {
 	height: 100% !important;
 	object-fit: cover;
 }
-/* html5-qrcode inyecta botones feos: los ocultamos */
 #reader__dashboard_section_csr,
 #reader__dashboard_section_swaplink,
 #reader__header_message {
 	display: none !important;
 }
 
-/* Foto del producto */
+/* Imágenes del resultado */
 .producto-img {
 	display: block;
 	width: 100%;
@@ -336,8 +309,15 @@ dl.stats {
 	border-radius: 10px;
 	margin: 0 auto 12px;
 }
+.nutriscore-img {
+	display: block;
+	width: 100%;
+	max-height: 140px;
+	object-fit: contain;
+	margin: 0 auto;
+}
 
-/* Octógonos negros */
+/* ---------- Octógonos ---------- */
 .sellos {
 	display: flex;
 	flex-wrap: wrap;
@@ -362,18 +342,72 @@ dl.stats {
 	text-transform: uppercase;
 	clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
 }
-.octogono--ultra {
-	font-size: 0.68rem;
+
+/* ---------- nutri-score 2003 ---------- */
+.card .nutriscore-caja {
+	display: block;
+	width: fit-content;
+	margin: 0.75rem 0;
+	padding: 0;
+	position: relative;
+}
+.card .nutriscore-caja[hidden] {
+	display: none;
+}
+.card .nutriscore-caja .nutriscore-img {
+	display: block;
+	width: 140px;
+	height: auto;
+	max-width: 100%;
+	max-height: none;
+	margin: 0;
+	padding: 0;
+	border: 0;
 }
 
-/* =========================================================
-   Estados :hover / :active
-   ========================================================= */
+/* Base común de los dos marcos */
+.card .nutriscore-caja.ultraprocesado,
+.card .nutriscore-caja.nuevo-calculo {
+	border-radius: 10px;
+	padding: 5px 5px 1.6em;
+	font-size: 0.7rem;
+}
+.card .nutriscore-caja.ultraprocesado::after,
+.card .nutriscore-caja.nuevo-calculo::after {
+	position: absolute;
+	bottom: 0.4em;
+	left: 0;
+	right: 0;
+	text-align: center;
+	font-family: Arial, sans-serif;
+	font-weight: bold;
+	letter-spacing: 0.05em;
+}
+
+/* Ultraprocesado: marco negro */
+.card .nutriscore-caja.ultraprocesado {
+	background: #000;
+}
+.card .nutriscore-caja.ultraprocesado::after {
+	content: "ULTRAPROCESADO";
+	color: #fff;
+}
+
+/* No ultraprocesado: marco azul con "nuevo cálculo" */
+.card .nutriscore-caja.nuevo-calculo {
+	background: #0b2c6b;
+	border: 0;
+}
+.card .nutriscore-caja.nuevo-calculo::after {
+	content: "NUEVO CÁLCULO";
+	color: #fff;
+}
+
+/* ---------- Estados hover / active ---------- */
 @media (hover: hover) and (pointer: fine) {
 	.topbar-link:hover {
 		background-color: var(--primary-hover);
 	}
-
 	.btn-primary:hover,
 	.btn-secondary:hover {
 		background-color: var(--btn-hover);
@@ -385,9 +419,7 @@ dl.stats {
 	}
 }
 
-/* =========================================================
-   Responsive
-   ========================================================= */
+/* ---------- Responsive ---------- */
 @media (min-width: 700px) {
 	.dashboard-container {
 		display: grid;

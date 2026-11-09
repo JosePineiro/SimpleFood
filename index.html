@@ -6,10 +6,8 @@
 		<title>SIMPLEFOOD - Escáner de productos</title>
 		<link rel="icon" type="image/svg+xml" href="./favicon.svg">
 		<link rel="stylesheet" href="css/styles.css">
-		<!-- <link rel="stylesheet" href="css/escaner.css"> -->
-		<!-- html5-qrcode: UMD estable, expone Html5Qrcode globalmente -->
 		<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-		<script type="module" src="js/escaner.js"></script>
+		<script type="module" src="js/index.js"></script>
 	</head>
 	<body>
 		<header class="topbar">
@@ -30,14 +28,14 @@
 					<div id="camara-panel" hidden>
 						<h2>Escáner</h2>
 						<p class="card-text">Apunta al código de barras (EAN-13 / UPC) del producto.</p>
-						<div id="reader" class="video-wrap" aria-label="Visor de la cámara"></div>
+						<div id="reader" class="video-wrap"></div>
 						<p class="card-text" id="estado-escaneo"></p>
 					</div>
 
 					<div id="form-manual-wrap" hidden>
 						<form id="form-manual" class="finish-form form-inline" novalidate>
 							<div class="form-row">
-								<label for="codigo-manual">
+								<label>
 									Código de barras
 									<input
 										id="codigo-manual"
@@ -60,6 +58,9 @@
 					<h2 id="nombre-producto">—</h2>
 					<img id="foto-producto" alt="Foto del producto" class="producto-img" hidden>
 					<div id="sellos" class="sellos" aria-live="polite"></div>
+					<figure id="nutriscore-caja" class="nutriscore-caja" hidden>
+						<img id="nutriscore" alt="Nutri-Score" class="nutriscore-img">
+					</figure>
 					<div id="denominacion-seccion">
 						<h3>Denominación</h3>
 						<p class="card-text" id="denominacion"></p>
