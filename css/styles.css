@@ -318,12 +318,42 @@ input {
 }
 
 /* ---------- Octógonos ---------- */
+#estado-escaneo:empty {
+	display: none;
+}
+
+/* Foto + sellos superpuestos: columna a la izquierda, de arriba abajo.
+   Si no cabe en la altura de la foto, pasa a una segunda columna. */
+.producto-media {
+	position: relative;
+}
+.producto-media .producto-img {
+	margin-bottom: 0;
+}
+/* Con sellos, la foto tiene altura mínima para que quepan 3 por columna. */
+.producto-media:has(.octogono) .producto-img {
+	min-height: 280px;
+}
+.producto-media.sin-foto:not(:has(.octogono)) {
+	display: none;
+}
 .sellos {
+	position: absolute;
+	inset: 8px auto 8px 8px;
 	display: flex;
-	flex-wrap: wrap;
-	gap: 10px;
+	flex-flow: column wrap;
+	align-content: flex-start;
+	align-items: flex-start;
+	gap: 6px;
+	pointer-events: none;
+	filter: drop-shadow(0 0 1.5px #fff) drop-shadow(0 2px 3px rgba(0, 0, 0, 0.35));
+}
+/* Sin foto: los sellos van en fila, centrados, como antes. */
+.producto-media.sin-foto .sellos {
+	position: static;
+	flex-flow: row wrap;
 	justify-content: center;
-	margin: 14px 0;
+	pointer-events: auto;
 }
 .octogono {
 	background: #000;
@@ -332,11 +362,11 @@ input {
 	align-items: center;
 	justify-content: center;
 	text-align: center;
-	width: 96px;
-	height: 96px;
-	padding: 10px 6px;
+	width: 80px;
+	height: 80px;
+	padding: 8px 5px;
 	font-weight: 800;
-	font-size: 0.72rem;
+	font-size: 0.62rem;
 	line-height: 1.15;
 	letter-spacing: 0.3px;
 	text-transform: uppercase;

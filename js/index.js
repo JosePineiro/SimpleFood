@@ -144,7 +144,7 @@ async function fetchConReintentos(url, intentos = 3) {
 
 async function procesarCodigo(codigo) {
 	const id = ++peticionActual;
-	setText("estado-escaneo", `Código detectado: ${codigo}. Consultando Open Food Facts…`);
+	// setText("estado-escaneo", `Código detectado: ${codigo}. Consultando Open Food Facts…`);
 	try {
 		const resp = await fetchConReintentos(`${OFF_API_V3}${codigo}?fields=${OFF_FIELDS}`);
 		if (id !== peticionActual) return;
@@ -164,7 +164,7 @@ async function procesarCodigo(codigo) {
 		}
 
 		mostrarProducto(product);
-		setText("estado-escaneo", `Código leído: ${codigo}`);
+		// setText("estado-escaneo", `Código leído: ${codigo}`);
 	} catch (error) {
 		if (id !== peticionActual) return;
 		console.error("[escaner] procesarCodigo:", error);
@@ -254,7 +254,7 @@ function getNutriscore2023(tags) {
 	return null;
 }
 
-function estimarAzucaresLibres(producto) {
+function getAzucaresLibres(producto) {
 	const n = producto.nutriments ?? {};
 	if (n["free-sugars_100g"] != null) return Number(n["free-sugars_100g"]);
 	if (n["added-sugars_100g"] != null) return Number(n["added-sugars_100g"]);
@@ -285,7 +285,7 @@ function calcularSellos(producto, grupoNova, esLiquido) {
 		: Number(n.salt_100g ?? 0) * 400;
 
 	return [
-		["Exceso en azúcares", estimarAzucaresLibres(producto), max.azucar],
+		["Exceso en azúcares", getAzucaresLibres(producto), max.azucar],
 		["Exceso en grasas saturadas", Number(n["saturated-fat_100g"] ?? 0), max.grasaSat],
 		["Exceso en grasas totales", Number(n.fat_100g ?? 0), max.grasaTot],
 		["Exceso en calorías", Number(n["energy-kcal_100g"] ?? 0), max.kcal],
@@ -356,11 +356,11 @@ function renderizarSellos(producto, esLiquido, grupoNova) {
 		cont.appendChild(div);
 	}
 
+	// El mensaje va fuera del contenedor superpuesto a la foto.
+	const msg = $("sellos-msg");
+	msg.hidden = textos.length > 0;
 	if (textos.length === 0) {
-		const p = document.createElement("p");
-		p.className = "card-text";
-		p.textContent = MENSAJES_SIN_SELLO[grupoNova] ?? "No supera los umbrales para ningún nutriente crítico.";
-		cont.appendChild(p);
+		msg.textContent = MENSAJES_SIN_SELLO[grupoNova] ?? "No supera los umbrales para ningún nutriente crítico.";
 	}
 }
 
@@ -397,6 +397,7 @@ function mostrarProducto(producto) {
 		|| producto.image_small_url;
 	const foto = $("foto-producto");
 	foto.hidden = !url;
+	$("producto-media").classList.toggle("sin-foto", !url);
 	if (url) {
 		foto.src = url;
 		foto.alt = `Foto de ${nombre || "producto"}`;
