@@ -334,12 +334,12 @@ input {
 .producto-media:has(.octogono) .producto-img {
 	min-height: 280px;
 }
-.producto-media.sin-foto:not(:has(.octogono)) {
+.producto-media.sin-foto:not(:has(.octogono)):not(:has(.nutriscore-caja:not([hidden]))) {
 	display: none;
 }
 .sellos {
 	position: absolute;
-	inset: 8px auto 8px 8px;
+	inset: 0 auto 0 0;
 	display: flex;
 	flex-flow: column wrap;
 	align-content: flex-start;
@@ -399,7 +399,7 @@ a.octogono:focus-visible {
 }
 .card .nutriscore-caja .nutriscore-img {
 	display: block;
-	width: 140px;
+	width: 98px; /* 70 % de 140px */
 	height: auto;
 	max-width: 100%;
 	max-height: none;
@@ -425,7 +425,7 @@ a.octogono:focus-visible {
 .card .nutriscore-caja:has(a:focus-visible) {
 	outline: var(--focus-ring);
 	outline-offset: var(--focus-offset);
-	border-radius: 10px;
+	border-radius: 7px;
 }
 .card .nutriscore-caja::after {
 	pointer-events: none; /* el rótulo «ULTRAPROCESADO» no debe tapar el enlace */
@@ -434,9 +434,9 @@ a.octogono:focus-visible {
 /* Base común de los dos marcos */
 .card .nutriscore-caja.ultraprocesado,
 .card .nutriscore-caja.nuevo-calculo {
-	border-radius: 10px;
-	padding: 5px 5px 1.6em;
-	font-size: 0.7rem;
+	border-radius: 7px;
+	padding: 3.5px 3.5px 1.6em;
+	font-size: 0.49rem; /* 70 % de 0.7rem, para que el rótulo siga cabiendo */
 }
 .card .nutriscore-caja.ultraprocesado::after,
 .card .nutriscore-caja.nuevo-calculo::after {
@@ -467,6 +467,22 @@ a.octogono:focus-visible {
 .card .nutriscore-caja.nuevo-calculo::after {
 	content: "NUEVO CÁLCULO";
 	color: #fff;
+}
+
+/* Con foto: el Nutri-Score va superpuesto en la esquina inferior derecha.
+   Sin foto: queda en el flujo normal, como antes. */
+.card .producto-media:not(.sin-foto) .nutriscore-caja {
+	position: absolute;
+	right: 0;
+	bottom: 0;
+	margin: 0;
+	filter: drop-shadow(0 0 1.5px #fff) drop-shadow(0 2px 3px rgba(0, 0, 0, 0.35));
+}
+.card .producto-media:not(.sin-foto) .nutriscore-caja .nutriscore-img {
+	width: clamp(56px, 18.2vw, 77px); /* 70 % de clamp(80px, 26vw, 110px) */
+}
+.card .producto-media.sin-foto .nutriscore-caja {
+	margin-inline: auto;
 }
 
 /* ---------- Estados hover / active ---------- */
