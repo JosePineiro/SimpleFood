@@ -16,11 +16,12 @@ const formatearUnDecimal = (n) =>
    ========================================================= */
 const TIEMPO_REINTENTOS_MS = 3000;
 const TIMEOUT_FETCH_MS = 8000;
+const URL_AYUDA_SELLOS = "ayuda-sellos.html";
 const OFF_API_V3 = "https://world.openfoodfacts.org/api/v3/product/";
 const OFF_FIELDS = [
 	"product_name", "product_name_en", "product_name_es",
 	"generic_name", "generic_name_es",
-	"image_front_url", "image_url", "image_front_small_url", "image_small_url",
+	"image_front_url", "selected_images", "image_url", "image_front_small_url", "image_small_url",
 	"ingredients_text", "ingredients_text_es",
 	"nutriments", "nova_group", "additives_tags",
 	"product_quantity_unit",
@@ -284,13 +285,14 @@ function calcularSellos(producto, grupoNova, esLiquido) {
 		? Number(n.sodium_100g) * 1000
 		: Number(n.salt_100g ?? 0) * 400;
 
+	// [id de ancla en la página de ayuda, texto del sello, valor, límite]
 	return [
-		["Exceso en azúcares", getAzucaresLibres(producto), max.azucar],
-		["Exceso en grasas saturadas", Number(n["saturated-fat_100g"] ?? 0), max.grasaSat],
-		["Exceso en grasas totales", Number(n.fat_100g ?? 0), max.grasaTot],
-		["Exceso en calorías", Number(n["energy-kcal_100g"] ?? 0), max.kcal],
-		["Exceso en sodio", sodioMg, max.sodioMg],
-	].filter(([, valor, limite]) => valor > limite).map(([texto]) => texto);
+		["azucares", "Exceso en azúcares", getAzucaresLibres(producto), max.azucar],
+		["grasas-saturadas", "Exceso en grasas saturadas", Number(n["saturated-fat_100g"] ?? 0), max.grasaSat],
+		["grasas-totales", "Exceso en grasas totales", Number(n.fat_100g ?? 0), max.grasaTot],
+		["calorias", "Exceso en calorías", Number(n["energy-kcal_100g"] ?? 0), max.kcal],
+		["sodio", "Exceso en sodio", sodioMg, max.sodioMg],
+	].filter(([, , valor, limite]) => valor > limite).map(([id, texto]) => ({ id, texto }));
 }
 
 /* =========================================================
@@ -309,30 +311,21 @@ function mostrarTexto(seccionId, textoId, texto) {
 }
 
 const NUTRIENTES = [
-	["energy-kcal", "Energía", "kcal"],
-	["fat", "Grasas totales", "g"],
-	["saturated-fat", "Grasas saturadas", "g"],
-	["carbohydrates", "Hidratos de carbono", "g"],
-	["sugars", "Azúcares", "g"],
-	["proteins", "Proteínas", "g"],
-	["fiber", "Fibra", "g"],
-	["salt", "Sal", "g"]
+	["energy-kcal", "kcal"],
+	["fat", "g"],
+	["saturated-fat", "g"],
+	["carbohydrates", "g"],
+	["sugars", "g"],
+	["proteins", "g"],
+	["fiber", "g"],
+	["salt", "g"]
 ];
 
 function renderizarNutrientes(n, esLiquido) {
 	setText("nutrientes-titulo", `Información nutricional (por 100 ${esLiquido ? "ml" : "g"})`);
-	const dl = $("nutrientes");
-	dl.innerHTML = "";
-
-	for (const [clave, etiqueta, unidad] of NUTRIENTES) {
+	for (const [clave, unidad] of NUTRIENTES) {
 		const valor = Number(n[`${clave}_100g`] ?? NaN);
-		const cont = document.createElement("div");
-		const dt = document.createElement("dt");
-		const dd = document.createElement("dd");
-		dt.textContent = etiqueta;
-		dd.textContent = Number.isFinite(valor) ? `${formatearUnDecimal(valor)} ${unidad}` : "—";
-		cont.append(dt, dd);
-		dl.appendChild(cont);
+		setText(clave, Number.isFinite(valor) ? `${formatearUnDecimal(valor)} ${unidad}` : "—");
 	}
 }
 
@@ -343,23 +336,27 @@ const MENSAJES_SIN_SELLO = {
 };
 
 function renderizarSellos(producto, esLiquido, grupoNova) {
-	const textos = calcularSellos(producto, grupoNova, esLiquido);
-	if (contieneAlcohol(producto)) textos.push("Alcohol");
+	const sellos = calcularSellos(producto, grupoNova, esLiquido);
+	if (contieneAlcohol(producto)) sellos.push({ id: "alcohol", texto: "Alcohol" });
 
 	const cont = $("sellos");
 	cont.innerHTML = "";
 
-	for (const texto of textos) {
-		const div = document.createElement("div");
-		div.className = "octogono";
-		div.textContent = texto;
-		cont.appendChild(div);
+	for (const { id, texto } of sellos) {
+		const enlace = document.createElement("a");
+		enlace.className = "octogono";
+		enlace.href = `${URL_AYUDA_SELLOS}#${id}`;
+		enlace.target = "_blank";
+		enlace.rel = "noopener";
+		enlace.title = `${texto}: ver qué significa`;
+		enlace.textContent = texto;
+		cont.appendChild(enlace);
 	}
 
 	// El mensaje va fuera del contenedor superpuesto a la foto.
 	const msg = $("sellos-msg");
-	msg.hidden = textos.length > 0;
-	if (textos.length === 0) {
+	msg.hidden = sellos.length > 0;
+	if (sellos.length === 0) {
 		msg.textContent = MENSAJES_SIN_SELLO[grupoNova] ?? "No supera los umbrales para ningún nutriente crítico.";
 	}
 }
@@ -376,6 +373,12 @@ function renderizarNutriscore(producto, grupoNova) {
 	img.src = `images/nutriscore-${ultra ? "" : "2023-"}${letra}.svg`;
 	img.alt = `Nutri-Score 2023 ${letra.toUpperCase()}${ultra ? " - ultraprocesado" : ""}`;
 	caja.classList.toggle("ultraprocesado", ultra);
+
+	const enlace = $("nutriscore-enlace");
+	enlace.href = `${URL_AYUDA_SELLOS}#${ultra ? "ultraprocesado" : "nutriscore"}`;
+	enlace.title = ultra
+		? "¿Qué significa el marco negro «ultraprocesado»?"
+		: "¿Qué significa el Nutri-Score?";
 }
 
 function mostrarProducto(producto) {
@@ -391,7 +394,8 @@ function mostrarProducto(producto) {
 	mostrarTexto("denominacion-ingredientes", "ingredientes",
 		producto.ingredients_text_es?.trim() || producto.ingredients_text?.trim());
 
-	const url = producto.image_front_url
+	const url = producto.selected_images?.front?.display?.es
+		|| producto.image_front_url
 		|| producto.image_url
 		|| producto.image_front_small_url
 		|| producto.image_small_url;

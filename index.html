@@ -60,7 +60,14 @@
 					</div>
 					<p id="sellos-msg" class="card-text" aria-live="polite" hidden></p>
 					<figure id="nutriscore-caja" class="nutriscore-caja" hidden>
-						<img id="nutriscore" alt="Nutri-Score" class="nutriscore-img">
+						<a
+							id="nutriscore-enlace"
+							href="ayuda-sellos.html#nutriscore"
+							target="_blank"
+							rel="noopener"
+							title="¿Qué significa el Nutri-Score?"
+							><img id="nutriscore" alt="Nutri-Score" class="nutriscore-img"></a
+						>
 					</figure>
 					<div id="denominacion-seccion">
 						<h3>Denominación</h3>
@@ -69,7 +76,43 @@
 					<div id="denominacion-ingredientes">
 						<h3>Ingredientes</h3>
 						<p class="card-text" id="ingredientes">—</p>
+
+						<dl class="stats" id="nutrientes">
+							<div>
+								<dt>Energía</dt>
+								<dd id="energy-kcal"></dd>
+							</div>
+							<div>
+								<dt>Grasas totales</dt>
+								<dd id="fat"></dd>
+							</div>
+							<div>
+								<dt>Grasas saturadas</dt>
+								<dd id="saturated-fat"></dd>
+							</div>
+							<div>
+								<dt>Sal</dt>
+								<dd id="salt"></dd>
+							</div>
+							<div>
+								<dt>Hidratos de carbono</dt>
+								<dd id="carbohydrates"></dd>
+							</div>
+							<div>
+								<dt>Azúcares</dt>
+								<dd id="sugars"></dd>
+							</div>
+							<div>
+								<dt>Fibra</dt>
+								<dd id="fiber"></dd>
+							</div>
+							<div>
+								<dt>Proteínas</dt>
+								<dd id="proteins"></dd>
+							</div>
+						</dl>
 					</div>
+
 					<h3 id="nutrientes-titulo">Información nutricional (por 100 g / ml)</h3>
 					<dl class="stats" id="nutrientes"></dl>
 				</article>

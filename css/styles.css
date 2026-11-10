@@ -372,6 +372,19 @@ input {
 	text-transform: uppercase;
 	clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
 }
+/* Los sellos del resultado son enlaces a la ayuda. */
+a.octogono {
+	color: #fff;
+	text-decoration: none;
+	cursor: pointer;
+	pointer-events: auto; /* el contenedor .sellos ignora el ratón, los sellos no */
+	-webkit-tap-highlight-color: transparent;
+}
+/* El outline se recortaría con clip-path, así que el foco se marca con el fondo. */
+a.octogono:focus-visible {
+	background: #1a5fd0;
+	outline: none;
+}
 
 /* ---------- nutri-score 2003 ---------- */
 .card .nutriscore-caja {
@@ -393,6 +406,29 @@ input {
 	margin: 0;
 	padding: 0;
 	border: 0;
+}
+
+/* El logo es un enlace a la ayuda; el enlace se estira para cubrir también el marco. */
+.card .nutriscore-caja a {
+	display: block;
+	color: inherit;
+	-webkit-tap-highlight-color: transparent;
+}
+.card .nutriscore-caja a::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+}
+.card .nutriscore-caja a:focus-visible {
+	outline: none;
+}
+.card .nutriscore-caja:has(a:focus-visible) {
+	outline: var(--focus-ring);
+	outline-offset: var(--focus-offset);
+	border-radius: 10px;
+}
+.card .nutriscore-caja::after {
+	pointer-events: none; /* el rótulo «ULTRAPROCESADO» no debe tapar el enlace */
 }
 
 /* Base común de los dos marcos */
@@ -437,6 +473,9 @@ input {
 @media (hover: hover) and (pointer: fine) {
 	.topbar-link:hover {
 		background-color: var(--primary-hover);
+	}
+	a.octogono:hover {
+		background: #333;
 	}
 	.btn-primary:hover,
 	.btn-secondary:hover {
@@ -488,5 +527,125 @@ input {
 	.btn:hover,
 	.btn:active {
 		transform: none;
+	}
+}
+
+/* ---------- Página de ayuda de sellos ---------- */
+.ayuda .card {
+	display: block;
+	text-align: left;
+}
+.ayuda .card > .card-text + .card-text,
+.ayuda .card > .card-text + h3,
+.ayuda .card > h3 {
+	margin-top: 12px;
+}
+.ayuda h3 {
+	margin: 0 0 4px;
+	font-size: 1rem;
+	color: #222;
+}
+.ayuda .card-text a {
+	color: var(--primary-color);
+}
+.ayuda section,
+.ayuda .ayuda-item {
+	scroll-margin-top: 72px; /* deja libre la barra superior fija */
+}
+
+.ayuda-indice {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-top: 14px;
+}
+.ayuda-indice a {
+	padding: 6px 12px;
+	border-radius: 8px;
+	background: #eee;
+	color: #222;
+	font-size: 0.85rem;
+	font-weight: 600;
+	text-decoration: none;
+}
+
+/* Cada sello: octógono a la izquierda, explicación a la derecha. */
+.ayuda-item {
+	display: flex;
+	gap: 14px;
+	align-items: center;
+	margin-top: 16px;
+	padding: 10px;
+	border-radius: var(--radius);
+}
+.ayuda-item .octogono {
+	flex-shrink: 0;
+}
+.ayuda-item:target,
+.ayuda section:target {
+	outline: 3px solid var(--primary-color);
+	outline-offset: 2px;
+}
+.ayuda-item:target {
+	background: #eaf4ff;
+}
+
+.ayuda-nutriscore-escala {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin: 12px 0;
+}
+.ayuda-nutriscore-escala img {
+	width: 90px;
+	height: auto;
+}
+.ayuda .ayuda-ejemplo {
+	margin: 12px 0;
+}
+
+.ayuda-tabla-wrap {
+	overflow-x: auto;
+	margin-top: 10px;
+}
+.ayuda-tabla {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 0.9rem;
+}
+.ayuda-tabla th,
+.ayuda-tabla td {
+	padding: 8px 10px;
+	border-bottom: 1px solid #ddd;
+	text-align: left;
+}
+.ayuda-tabla thead th {
+	background: #ddd;
+}
+
+.ayuda-lista {
+	display: grid;
+	gap: 8px;
+	margin: 12px 0 0;
+}
+.ayuda-lista > div {
+	background: #eee;
+	border-radius: 10px;
+	padding: 10px;
+}
+.ayuda-lista dt {
+	font-weight: 700;
+	color: #111;
+}
+.ayuda-lista dd {
+	margin: 3px 0 0;
+	color: var(--muted-color);
+	font-size: 0.9rem;
+	line-height: 1.45;
+}
+
+@media (hover: hover) and (pointer: fine) {
+	.ayuda-indice a:hover {
+		background: #ddd;
 	}
 }
